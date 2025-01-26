@@ -1,0 +1,16 @@
+[package]
+name = "becksman"
+version = "0.1.0"
+edition = "2021"
+
+[workspace]
+resolver = "2"
+members = [
+    "becks_server",
+    "becks_client",
+    "becks_server/becks_db",
+    "becks_server/becks_ops",
+    "becks_server/becks_user",
+]
+
+[dependencies]
