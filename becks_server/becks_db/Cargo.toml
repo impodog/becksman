@@ -4,7 +4,11 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+indoc = "2.0.5"
 log = "0.4.25"
 rusqlite = "0.33.0"
 serde = { version = "1.0.217", features = ["derive"] }
 toml = "0.8.19"
+becks_user = { path = "../becks_user" }
+becks_convey = { path = "../becks_convey" }
+rand = "0.9.0"
