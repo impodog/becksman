@@ -1,13 +1,17 @@
 use crate::prelude::*;
 use crate::CONFIG;
-use std::sync::RwLock;
+use std::sync::{Mutex, MutexGuard, RwLock};
 
 pub struct Db {
-    user: Connection,
+    user: Mutex<Connection>,
     login: RwLock<crate::LoginMap>,
 }
 
 impl Db {
+    fn user(&self) -> MutexGuard<Connection> {
+        self.user.lock().unwrap()
+    }
+
     pub fn connect() -> Self {
         info!("Connecting to main database");
         let user = Connection::open(&CONFIG.db.becksman).unwrap_or_else(|err| {
@@ -20,8 +24,19 @@ impl Db {
             );
             Connection::open_in_memory().expect("rusqlite should connect to the database")
         });
+        info!("Initializing the main database");
+        user.execute(
+            indoc! {
+                "CREATE TABLE IF NOT EXISTS user (
+                    name VARCHAR(20) PRIMARY KEY,
+                    pass VARCHAR(20)
+                )"
+            },
+            [],
+        )
+        .expect("initializing user table should succeed");
         Self {
-            user,
+            user: Mutex::new(user),
             login: Default::default(),
         }
     }
@@ -31,14 +46,16 @@ impl Db {
         check!(alnum name);
         check!(alnum pass);
         if self
-            .user
-            .query_row("SELECT * FROM user WHERE name = ?1", [name], |_| Ok(()))
+            .user()
+            .query_row("SELECT name FROM user WHERE name = ?1", [name], |row| {
+                row.get::<_, String>(0)
+            })
             .is_ok()
         {
             // Replicate users
             false
         } else {
-            self.user
+            self.user()
                 .execute(
                     "INSERT INTO user (name, pass) values (?1, ?2)",
                     [name, pass],
@@ -55,11 +72,11 @@ impl Db {
         check!(alnum name);
         check!(alnum pass);
         info!("Attempt to log in with name {}, password {}", name, pass);
-        let target = self
-            .user
-            .query_row("SELECT pass FROM user WHERE name = ?1", [name], |row| {
-                row.get::<_, String>("pass")
-            });
+        let target =
+            self.user()
+                .query_row("SELECT pass FROM user WHERE name = ?1", [name], |row| {
+                    row.get::<_, String>("pass")
+                });
         if let Ok(target) = target {
             if target != pass {
                 error!("Password {} is wrong for user {}", pass, name);

@@ -20,3 +20,14 @@ pub struct LoginRequest {
 pub struct LoginResponse {
     pub token: Token,
 }
+
+#[derive(Serialize, Deserialize)]
+pub struct LogoutRequest {
+    pub token: Token,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct CreateRequest {
+    pub name: String,
+    pub pass: String,
+}

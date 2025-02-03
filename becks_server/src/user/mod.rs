@@ -10,5 +10,11 @@ async fn test() -> impl Responder {
 
 // this function could be located in a different module
 pub fn config_user(cfg: &mut web::ServiceConfig) {
-    cfg.service(web::scope("/user").service(test).service(auth::log_in));
+    cfg.service(
+        web::scope("/user")
+            .service(test)
+            .service(auth::log_in)
+            .service(auth::log_out)
+            .service(auth::create_user),
+    );
 }

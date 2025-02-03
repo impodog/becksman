@@ -1,7 +1,7 @@
 use crate::prelude::*;
 use std::path::PathBuf;
 use std::sync::LazyLock;
-use std::sync::{OnceLock, RwLock};
+use std::sync::RwLock;
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Database {
@@ -12,7 +12,7 @@ impl Default for Database {
     fn default() -> Self {
         Self {
             becksman: PathBuf::from("becksman.db"),
-            user_base: PathBuf::from("."),
+            user_base: PathBuf::from("./"),
         }
     }
 }
@@ -24,7 +24,7 @@ pub struct Server {
 impl Default for Server {
     fn default() -> Self {
         Self {
-            addr: "127.0.0.1:114".parse().expect("should be valid address"),
+            addr: "127.0.0.1:1145".parse().expect("should be valid address"),
         }
     }
 }

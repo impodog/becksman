@@ -21,14 +21,15 @@ async fn hello() -> impl Responder {
 }
 
 pub async fn app() -> std::io::Result<()> {
-    HttpServer::new(|| {
+    let db = Arc::new(becks_db::Db::connect());
+    HttpServer::new(move || {
         App::new()
-            .app_data(web::Data::new(becks_db::Db::connect()))
+            .app_data(web::Data::new(db.clone()))
             .service(hello)
             .service(hello_name)
             .configure(user::config_user)
     })
-    .bind(("0.0.0.0", 8080))?
+    .bind(becks_db::CONFIG.server.addr)?
     .run()
     .await
 }

@@ -1,16 +1,17 @@
 use crate::prelude::*;
 use std::collections::{HashMap, HashSet};
 use std::ops::Deref;
+use std::sync::Mutex;
 
 pub struct Login {
     pub name: String,
-    pub db: Connection,
+    pub db: Mutex<Connection>,
 }
 
 impl Login {
     /// Connects to the corresponding database
     pub fn new(name: String) -> Self {
-        let path = CONFIG.db.user_base.join(&name).with_extension(".db");
+        let path = CONFIG.db.user_base.join(format!("{}.db", name));
         info!("Connecting to user database {:?}", path);
         let db = Connection::open(&path).unwrap_or_else(|err| {
             error!("When opening user database {:?}, {}", path, err);
@@ -19,14 +20,26 @@ impl Login {
             );
             Connection::open_in_memory().expect("rusqlite should connect to the database")
         });
-        Self { name, db }
+        Self {
+            name,
+            db: Mutex::new(db),
+        }
     }
 }
 
-#[derive(Default)]
 pub struct LoginMap {
     map: HashMap<Token, Login>,
     logged: HashSet<String>,
+}
+
+impl Default for LoginMap {
+    fn default() -> Self {
+        trace!("LoginMap CREATED");
+        Self {
+            map: Default::default(),
+            logged: Default::default(),
+        }
+    }
 }
 
 impl Deref for LoginMap {
