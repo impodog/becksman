@@ -8,22 +8,40 @@ pub struct Login {
     pub db: Mutex<Connection>,
 }
 
+/// Returns whether the table exists in a database file, returning true on sqlite errors
+fn table_exists(conn: &Connection, table_name: &str) -> bool {
+    // Query the sqlite_master table to check if the table exists
+    match conn.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name=?") {
+        Ok(mut stmt) => stmt.exists([table_name]).unwrap_or_else(|err| {
+            error!("When checking table {} existence, {}", table_name, err);
+            true
+        }),
+        Err(err) => {
+            error!("When checking table {} existence, {}", table_name, err);
+            true
+        }
+    }
+}
+
 impl Login {
     /// Connects to the corresponding database
     pub fn new(name: String) -> Self {
         let path = CONFIG.db.user_base.join(format!("{}.db", name));
-        info!("Connecting to user database {:?}", path);
+        trace!("Connecting to user database {:?}", path);
         let db = Connection::open(&path).unwrap_or_else(|err| {
-            error!("When opening user database {:?}, {}", path, err);
-            warn!(
-                "Opening user database in memory, you may lose all data after closing this program"
+            error!(
+                "When opening user database {:?}, {}; Opening database in memory",
+                path, err
             );
             Connection::open_in_memory().expect("rusqlite should connect to the database")
         });
-        db.execute(
-            indoc! {
-                "CREATE TABLE IF NOT EXISTS crew (
+
+        if !table_exists(&db, "crew") {
+            db.execute(
+                indoc! {
+                    "CREATE TABLE IF NOT EXISTS crew (
                     id INT PRIMARY KEY,
+                    name VARCHAR(20),
                     social BIT,
                     gender BIT,
                     clothes TINYINT,
@@ -31,16 +49,27 @@ impl Login {
                     hold BIT,
                     paddle VARCHAR(40),
                     red_rubber VARCHAR(40),
-                    black_rubber VARCHAR(40),
-                    INDEX idx_name (name)
+                    black_rubber VARCHAR(40)
                 )"
-            },
-            [],
-        )
-        .inspect_err(|err| {
-            error!("When initializing crew database, {}", err);
-        })
-        .ok();
+                },
+                [],
+            )
+            .inspect_err(|err| {
+                error!("When initializing crew database, {}", err);
+            })
+            .ok();
+            db.execute(
+                indoc! {
+                    "CREATE INDEX idx_name ON crew (name)"
+                },
+                [],
+            )
+            .inspect_err(|err| {
+                error!("When creating indices, {}", err);
+            })
+            .ok();
+        }
+
         Self {
             name,
             db: Mutex::new(db),

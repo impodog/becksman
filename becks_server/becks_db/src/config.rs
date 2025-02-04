@@ -11,7 +11,7 @@ pub struct Database {
 impl Default for Database {
     fn default() -> Self {
         Self {
-            becksman: PathBuf::from("becksman.db"),
+            becksman: PathBuf::from("_becksman.db"),
             user_base: PathBuf::from("./"),
         }
     }
@@ -41,10 +41,10 @@ impl Config {
     pub fn invoke_lazy(&self) {}
 
     pub fn read_local() -> Config {
-        info!("Reading configuration from {:?}", Self::CONFIG_PATH);
+        trace!("Reading configuration from {:?}", Self::CONFIG_PATH);
         let config = std::fs::read_to_string(Self::CONFIG_PATH).unwrap_or_else(|err| {
-            error!(
-                "When reading configuration from {:?}, {}",
+            warn!(
+                "When reading configuration from {:?}, {}; Using default",
                 Self::CONFIG_PATH,
                 err
             );
@@ -52,7 +52,7 @@ impl Config {
             Default::default()
         });
         toml::from_str::<Config>(&config).unwrap_or_else(|err| {
-            error!("When parsing string:\n{}\n{}", config, err);
+            warn!("When parsing string:\n{}\n{}; Using default", config, err);
             Default::default()
         })
     }

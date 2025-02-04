@@ -1,3 +1,4 @@
 /target
 /becksman.toml
 /*.db
+**/__pycache__

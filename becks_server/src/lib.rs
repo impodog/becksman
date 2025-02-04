@@ -11,13 +11,13 @@ struct HelloNameRequest {
 
 #[post("/test_name")]
 async fn hello_name(info: web::Json<HelloNameRequest>) -> impl Responder {
-    info!("Responding /test_name");
+    trace!("Responding /test_name");
     format!("Hello, {}!", info.name)
 }
 
 #[get("/test")]
 async fn hello() -> impl Responder {
-    info!("Responding /test");
+    trace!("Responding /test");
     HttpResponse::Ok().body("Hello world!")
 }
 

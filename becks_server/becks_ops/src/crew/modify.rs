@@ -30,6 +30,19 @@ pub trait Column: Sized {
     }
 }
 
+impl Column for String {
+    type Target = String;
+    fn name() -> &'static str {
+        "name"
+    }
+    fn convert(self) -> Self::Target {
+        self
+    }
+    fn acquire(value: Self::Target) -> Self {
+        value
+    }
+}
+
 impl Column for Social {
     type Target = u8;
     fn name() -> &'static str {

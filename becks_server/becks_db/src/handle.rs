@@ -13,18 +13,15 @@ impl Db {
     }
 
     pub fn connect() -> Self {
-        info!("Connecting to main database");
+        trace!("Connecting to main database");
         let user = Connection::open(&CONFIG.db.becksman).unwrap_or_else(|err| {
-            error!(
-                "When opening main database {:?}, {}",
-                CONFIG.db.becksman, err
-            );
             warn!(
-                "Opening main database in memory, you may lose all data after closing this program"
+                "When opening main database {:?}, {}; Opening database in memory",
+                CONFIG.db.becksman, err
             );
             Connection::open_in_memory().expect("rusqlite should connect to the database")
         });
-        info!("Initializing the main database");
+        trace!("Initializing the main database");
         user.execute(
             indoc! {
                 "CREATE TABLE IF NOT EXISTS user (
@@ -74,7 +71,7 @@ impl Db {
     pub fn log_in(&self, name: &str, pass: &str) -> Option<Token> {
         check!(alnum name);
         check!(alnum pass);
-        info!("Attempt to log in with name {}, password {}", name, pass);
+        trace!("Attempt to log in with name {}, password {}", name, pass);
         let target =
             self.user()
                 .query_row("SELECT pass FROM user WHERE name = ?1", [name], |row| {
@@ -82,14 +79,14 @@ impl Db {
                 });
         if let Ok(target) = target {
             if target != pass {
-                error!("Password {} is wrong for user {}", pass, name);
+                warn!("Password {} is wrong for user {}", pass, name);
                 return None;
             }
             let mut login = self.login.write().unwrap();
             let value = crate::Login::new(name.to_owned());
             login.insert(value)
         } else {
-            error!("User {} is not found", name);
+            warn!("User {} is not found", name);
             None
         }
     }
@@ -97,17 +94,19 @@ impl Db {
     /// Attempts to log out of the program, returns true on success
     pub fn log_out(&self, token: Token) -> bool {
         let mut login = self.login.write().unwrap();
+        trace!("Attempt to log out with token {:?}", token);
         if let Some(login) = login.remove(token) {
-            info!("User {} with token {:?} logged out", login.name, token);
+            trace!("User {} with token {:?} logged out", login.name, token);
             true
         } else {
-            error!("When logging out, token {:?} cannot be found", token);
+            warn!("When logging out, token {:?} cannot be found", token);
             false
         }
     }
 
     pub fn get_login(&self, token: &Token) -> Option<Arc<crate::Login>> {
         let login = self.login.read().unwrap();
+        trace!("Request with token {:?}", token);
         login.get(token).cloned()
     }
 }
