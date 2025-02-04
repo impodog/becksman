@@ -4,3 +4,9 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+becks_crew = { path = "../becks_crew" }
+becks_db = { path = "../becks_db" }
+indoc = "2.0.5"
+log = "0.4.25"
+num_enum = "0.7.3"
+rusqlite = "0.33.0"

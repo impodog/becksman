@@ -9,6 +9,6 @@ log = "0.4.25"
 rusqlite = "0.33.0"
 serde = { version = "1.0.217", features = ["derive"] }
 toml = "0.8.19"
-becks_user = { path = "../becks_user" }
+becks_crew = { path = "../becks_crew" }
 becks_convey = { path = "../becks_convey" }
 rand = "0.9.0"

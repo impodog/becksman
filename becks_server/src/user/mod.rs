@@ -1,3 +1,4 @@
+mod acq;
 mod auth;
 
 use crate::prelude::*;
@@ -8,7 +9,6 @@ async fn test() -> impl Responder {
     HttpResponse::Ok().body("User module is running!")
 }
 
-// this function could be located in a different module
 pub fn config_user(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/user")

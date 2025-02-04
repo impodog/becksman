@@ -1,7 +1,7 @@
 use crate::prelude::*;
 use std::collections::{HashMap, HashSet};
 use std::ops::Deref;
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex, MutexGuard};
 
 pub struct Login {
     pub name: String,
@@ -20,15 +20,40 @@ impl Login {
             );
             Connection::open_in_memory().expect("rusqlite should connect to the database")
         });
+        db.execute(
+            indoc! {
+                "CREATE TABLE IF NOT EXISTS crew (
+                    id INT PRIMARY KEY,
+                    social BIT,
+                    gender BIT,
+                    clothes TINYINT,
+                    hand BIT,
+                    hold BIT,
+                    paddle VARCHAR(40),
+                    red_rubber VARCHAR(40),
+                    black_rubber VARCHAR(40),
+                    INDEX idx_name (name)
+                )"
+            },
+            [],
+        )
+        .inspect_err(|err| {
+            error!("When initializing crew database, {}", err);
+        })
+        .ok();
         Self {
             name,
             db: Mutex::new(db),
         }
     }
+
+    pub fn db(&self) -> MutexGuard<Connection> {
+        self.db.lock().unwrap()
+    }
 }
 
 pub struct LoginMap {
-    map: HashMap<Token, Login>,
+    map: HashMap<Token, Arc<Login>>,
     logged: HashSet<String>,
 }
 
@@ -43,7 +68,7 @@ impl Default for LoginMap {
 }
 
 impl Deref for LoginMap {
-    type Target = HashMap<Token, Login>;
+    type Target = HashMap<Token, Arc<Login>>;
     fn deref(&self) -> &Self::Target {
         &self.map
     }
@@ -69,7 +94,7 @@ impl LoginMap {
     pub(crate) fn insert(&mut self, login: Login) -> Option<Token> {
         if self.logged.insert(login.name.clone()) {
             let token = self.gen_token();
-            self.map.insert(token, login);
+            self.map.insert(token, Arc::new(login));
             Some(token)
         } else {
             None
@@ -77,7 +102,7 @@ impl LoginMap {
     }
 
     /// Removes the login entry of the user, or return None
-    pub(crate) fn remove(&mut self, token: Token) -> Option<Login> {
+    pub(crate) fn remove(&mut self, token: Token) -> Option<Arc<Login>> {
         let login = self.map.remove(&token);
         if let Some(ref login) = login {
             self.logged.remove(&login.name);

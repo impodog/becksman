@@ -1,6 +1,6 @@
 use crate::prelude::*;
 use crate::CONFIG;
-use std::sync::{Mutex, MutexGuard, RwLock};
+use std::sync::{Arc, Mutex, MutexGuard, RwLock};
 
 pub struct Db {
     user: Mutex<Connection>,
@@ -34,7 +34,10 @@ impl Db {
             },
             [],
         )
-        .expect("initializing user table should succeed");
+        .inspect_err(|err| {
+            error!("When initializing user database, {}", err);
+        })
+        .ok();
         Self {
             user: Mutex::new(user),
             login: Default::default(),
@@ -101,5 +104,10 @@ impl Db {
             error!("When logging out, token {:?} cannot be found", token);
             false
         }
+    }
+
+    pub fn get_login(&self, token: &Token) -> Option<Arc<crate::Login>> {
+        let login = self.login.read().unwrap();
+        login.get(token).cloned()
     }
 }

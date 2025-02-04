@@ -3,7 +3,7 @@ use becks_convey::user::auth::*;
 
 #[post("/login")]
 pub(super) async fn log_in(info: web::Json<LoginRequest>, db: DbData) -> HttpResponse {
-    use becks_user::check;
+    use becks_crew::check;
     info!("Log-in attempt: {} with password {}", info.name, info.pass);
     if check!(is_alnum info.name) && check!(is_alnum info.pass) {
         if let Some(token) = db.log_in(&info.name, &info.pass) {
@@ -14,7 +14,7 @@ pub(super) async fn log_in(info: web::Json<LoginRequest>, db: DbData) -> HttpRes
             error!("Log-in failed with given credentials");
             HttpResponse::Unauthorized()
                 .content_type(http::header::ContentType::plaintext())
-                .body("unable to login with given credentials")
+                .body("unable to log-in with given credentials")
         }
     } else {
         error!("Given name or pass is not legal");
@@ -30,7 +30,7 @@ pub(super) async fn log_out(info: web::Json<LogoutRequest>, db: DbData) -> HttpR
     if db.log_out(info.token) {
         HttpResponse::Ok()
             .content_type(http::header::ContentType::plaintext())
-            .body("log out done")
+            .body("log-out done")
     } else {
         error!("Unable to find given token");
         HttpResponse::BadRequest()
@@ -41,7 +41,6 @@ pub(super) async fn log_out(info: web::Json<LogoutRequest>, db: DbData) -> HttpR
 
 #[post("/create")]
 pub(super) async fn create_user(info: web::Json<CreateRequest>, db: DbData) -> HttpResponse {
-    use becks_user::check;
     info!("Create attempt: {} with password {}", info.name, info.pass);
     if check!(is_alnum info.name) && check!(is_alnum info.pass) {
         if db.create(&info.name, &info.pass) {

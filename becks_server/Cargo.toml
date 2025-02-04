@@ -7,7 +7,7 @@ edition = "2021"
 actix-web = "4.9.0"
 becks_db = { path = "becks_db" }
 becks_ops = { path = "becks_ops" }
-becks_user = { path = "becks_user" }
+becks_crew = { path = "becks_crew" }
 becks_convey = { path = "becks_convey" }
 env_logger = "0.11.6"
 indoc = "2.0.5"
