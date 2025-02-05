@@ -40,7 +40,7 @@ impl Login {
             db.execute(
                 indoc! {
                     "CREATE TABLE IF NOT EXISTS crew (
-                    id INT PRIMARY KEY,
+                    id BIGINT PRIMARY KEY,
                     name VARCHAR(20),
                     social BIT,
                     gender BIT,

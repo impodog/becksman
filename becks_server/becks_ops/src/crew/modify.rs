@@ -8,25 +8,50 @@ pub trait Column: Sized {
     /// Returns true if modification is successful
     fn modify(self, login: &Login, id: CrewId) -> bool {
         login
-            .db
-            .lock()
-            .unwrap()
+            .db()
             .execute(
-                indoc! {"
+                &formatdoc! {"
                     UPDATE crew
-                    SET (:column) = (:value)
+                    SET {column} = (:value)
                     WHERE id = (:id)
-                "},
+                    ",
+                    column = Self::name(),
+                },
                 rusqlite::named_params! {
-                    ":column": Self::name(),
                     ":value": self.convert(),
-                    ":id":id.to_prim(),
+                    ":id": id.to_prim(),
                 },
             )
             .inspect_err(|err| {
                 error!("When modifying column {}, {}", Self::name(), err);
             })
             .is_ok()
+    }
+    fn query(login: &Login, id: CrewId) -> Option<Self> {
+        login
+            .db()
+            .query_row(
+                &formatdoc! {"
+                    SELECT {column} FROM crew
+                    WHERE id = (:id)
+                    ",
+                    column = Self::name(),
+                },
+                rusqlite::named_params! {
+                    ":id": id.to_prim(),
+                },
+                |row| row.get::<_, Self::Target>(0),
+            )
+            .inspect_err(|err| {
+                warn!(
+                    "Unable to select column {} from {:?}: {}",
+                    Self::name(),
+                    id,
+                    err
+                );
+            })
+            .ok()
+            .map(|value| Self::acquire(value))
     }
 }
 

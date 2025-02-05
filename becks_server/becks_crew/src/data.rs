@@ -13,6 +13,10 @@ impl CrewId {
     pub fn to_prim(&self) -> u64 {
         self.0
     }
+
+    pub fn from_prim(value: u64) -> Self {
+        Self(value)
+    }
 }
 
 #[derive(Default, Clone, Serialize, Deserialize)]
@@ -43,4 +47,17 @@ pub struct CrewData {
     pub paddle: Paddle,
     pub red: RedRubber,
     pub black: BlackRubber,
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+pub enum CrewLocation {
+    Name(String),
+    Social(Social),
+    Gender(Gender),
+    Clothes(Clothes),
+    Hand(Hand),
+    Hold(Hold),
+    Paddle(Paddle),
+    Red(RedRubber),
+    Black(BlackRubber),
 }

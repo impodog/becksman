@@ -359,6 +359,7 @@ dependencies = [
  "log",
  "num_enum",
  "rusqlite",
+ "serde",
 ]
 
 [[package]]

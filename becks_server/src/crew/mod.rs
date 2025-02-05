@@ -15,6 +15,7 @@ pub fn config_crew(cfg: &mut web::ServiceConfig) {
         web::scope("/crew")
             .service(test)
             .service(create::create_crew)
-            .service(modify::modify_crew),
+            .service(modify::modify_crew)
+            .service(query::query_by_crew),
     );
 }

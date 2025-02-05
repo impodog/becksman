@@ -30,7 +30,7 @@ macro_rules! modify_by {
 
 #[post("/modify")]
 pub(super) async fn modify_crew(req: web::Json<ModifyRequest>, db: DbData) -> HttpResponse {
-    use ModifyLocation as Loc;
+    use CrewLocation as Loc;
 
     let login = extract_login!(db, &req.token);
     match req.loc.to_owned() {

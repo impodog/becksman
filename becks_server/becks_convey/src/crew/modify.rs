@@ -5,18 +5,5 @@ use becks_crew::*;
 pub struct ModifyRequest {
     pub token: Token,
     pub id: CrewId,
-    pub loc: ModifyLocation,
-}
-
-#[derive(Serialize, Deserialize, Clone)]
-pub enum ModifyLocation {
-    Name(String),
-    Social(Social),
-    Gender(Gender),
-    Clothes(Clothes),
-    Hand(Hand),
-    Hold(Hold),
-    Paddle(Paddle),
-    Red(RedRubber),
-    Black(BlackRubber),
+    pub loc: CrewLocation,
 }
