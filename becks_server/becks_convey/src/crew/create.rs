@@ -5,6 +5,7 @@ use becks_crew::*;
 pub struct CreateRequest {
     pub token: Token,
     pub name: String,
+    pub social: Social,
 }
 
 #[derive(Serialize, Deserialize)]

@@ -25,9 +25,9 @@ pub trait Column: Sized {
             .inspect_err(|err| {
                 error!("When modifying column {}, {}", Self::name(), err);
             })
-            .is_ok()
+            .is_ok_and(|modified| modified > 0)
     }
-    fn query(login: &Login, id: CrewId) -> Option<Self> {
+    fn query(login: &Login, id: CrewId, required: bool) -> Option<Self> {
         login
             .db()
             .query_row(
@@ -43,12 +43,14 @@ pub trait Column: Sized {
                 |row| row.get::<_, Self::Target>(0),
             )
             .inspect_err(|err| {
-                warn!(
-                    "Unable to select column {} from {:?}: {}",
-                    Self::name(),
-                    id,
-                    err
-                );
+                if required {
+                    warn!(
+                        "Failed to select required column {} from {:?}: {}",
+                        Self::name(),
+                        id,
+                        err
+                    );
+                }
             })
             .ok()
             .map(|value| Self::acquire(value))
@@ -81,6 +83,20 @@ impl Column for Social {
             error!("When converting database, {err}");
             Self::default()
         })
+    }
+}
+
+impl Column for Score {
+    type Target = i32;
+    fn name() -> &'static str {
+        "score"
+    }
+    fn convert(self) -> Self::Target {
+        self.0
+    }
+
+    fn acquire(value: Self::Target) -> Self {
+        Self(value)
     }
 }
 

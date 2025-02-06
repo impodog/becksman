@@ -2,7 +2,7 @@ use crate::choices::*;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Hash, Clone, Copy, Debug)]
-pub struct CrewId(u64);
+pub struct CrewId(u32);
 
 impl CrewId {
     /// Generates a random but not (very) unique user id
@@ -10,11 +10,11 @@ impl CrewId {
         Self(rand::random())
     }
 
-    pub fn to_prim(&self) -> u64 {
+    pub fn to_prim(&self) -> u32 {
         self.0
     }
 
-    pub fn from_prim(value: u64) -> Self {
+    pub fn from_prim(value: u32) -> Self {
         Self(value)
     }
 }
@@ -36,23 +36,28 @@ pub struct RedRubber(pub Rubber);
 #[derive(Default, Clone, Serialize, Deserialize)]
 pub struct BlackRubber(pub Rubber);
 
-#[derive(Default)]
+#[derive(Default, Clone, Serialize, Deserialize)]
+pub struct Score(pub i32);
+
+#[derive(Default, Clone, Serialize, Deserialize)]
 pub struct CrewData {
     pub name: String,
     pub social: Social,
-    pub gender: Gender,
-    pub clothes: Clothes,
-    pub hand: Hand,
-    pub hold: Hold,
-    pub paddle: Paddle,
-    pub red: RedRubber,
-    pub black: BlackRubber,
+    pub score: Score,
+    pub gender: Option<Gender>,
+    pub clothes: Option<Clothes>,
+    pub hand: Option<Hand>,
+    pub hold: Option<Hold>,
+    pub paddle: Option<Paddle>,
+    pub red: Option<RedRubber>,
+    pub black: Option<BlackRubber>,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
 pub enum CrewLocation {
     Name(String),
     Social(Social),
+    Score(Score),
     Gender(Gender),
     Clothes(Clothes),
     Hand(Hand),

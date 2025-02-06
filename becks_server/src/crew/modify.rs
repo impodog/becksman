@@ -36,6 +36,7 @@ pub(super) async fn modify_crew(req: web::Json<ModifyRequest>, db: DbData) -> Ht
     match req.loc.to_owned() {
         Loc::Name(name) => modify_by!(String, name, login, req),
         Loc::Social(social) => modify_by!(Social, social, login, req),
+        Loc::Score(score) => modify_by!(Score, score, login, req),
         Loc::Gender(gender) => modify_by!(Gender, gender, login, req),
         Loc::Clothes(clothes) => modify_by!(Clothes, clothes, login, req),
         Loc::Hand(hand) => modify_by!(Hand, hand, login, req),
@@ -43,5 +44,34 @@ pub(super) async fn modify_crew(req: web::Json<ModifyRequest>, db: DbData) -> Ht
         Loc::Paddle(paddle) => modify_by!(Paddle, paddle, login, req),
         Loc::Red(red) => modify_by!(RedRubber, red, login, req),
         Loc::Black(black) => modify_by!(BlackRubber, black, login, req),
+    }
+}
+
+#[get("/acquire")]
+pub(super) async fn acquire_crew(req: web::Json<AcquireRequest>, db: DbData) -> HttpResponse {
+    let login = extract_login!(db, &req.token);
+    let get_crew = move || -> Option<CrewData> {
+        let data = CrewData {
+            name: String::query(&login, req.id, true)?,
+            social: Social::query(&login, req.id, true)?,
+            score: Score::query(&login, req.id, true)?,
+            gender: Gender::query(&login, req.id, false),
+            clothes: Clothes::query(&login, req.id, false),
+            hand: Hand::query(&login, req.id, false),
+            hold: Hold::query(&login, req.id, false),
+            paddle: Paddle::query(&login, req.id, false),
+            red: RedRubber::query(&login, req.id, false),
+            black: BlackRubber::query(&login, req.id, false),
+        };
+        Some(data)
+    };
+    if let Some(crew) = get_crew() {
+        HttpResponse::Ok()
+            .content_type(http::header::ContentType::json())
+            .json(AcquireResponse { crew })
+    } else {
+        HttpResponse::BadRequest()
+            .content_type(http::header::ContentType::plaintext())
+            .body("failed to acquire desired id")
     }
 }

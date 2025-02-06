@@ -40,9 +40,10 @@ impl Login {
             db.execute(
                 indoc! {
                     "CREATE TABLE IF NOT EXISTS crew (
-                    id BIGINT PRIMARY KEY,
+                    id BIGINT UNSIGNED PRIMARY KEY,
                     name VARCHAR(20),
                     social BIT,
+                    score INT,
                     gender BIT,
                     clothes TINYINT,
                     hand BIT,
@@ -59,9 +60,10 @@ impl Login {
             })
             .ok();
             db.execute(
-                indoc! {
-                    "CREATE INDEX idx_name ON crew (name)"
-                },
+                indoc! {"
+                    CREATE INDEX idx_name ON crew (name);
+                    CREATE INDEX idx_score ON crew (score)
+                "},
                 [],
             )
             .inspect_err(|err| {
