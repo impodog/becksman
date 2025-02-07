@@ -40,7 +40,7 @@ impl Login {
             db.execute(
                 indoc! {
                     "CREATE TABLE IF NOT EXISTS crew (
-                    id BIGINT UNSIGNED PRIMARY KEY,
+                    id INTEGER PRIMARY KEY,
                     name VARCHAR(20),
                     social BIT,
                     score INT,
@@ -76,7 +76,7 @@ impl Login {
             db.execute(
                 indoc! {"
                     CREATE TABLE IF NOT EXISTS round (
-                        id BIGINT UNSIGNED PRIMARY KEY,
+                        id INTEGER PRIMARY KEY,
                         left_win BIT
                     )
                 "},
@@ -92,10 +92,10 @@ impl Login {
             db.execute(
                 indoc! {"
                 CREATE TABLE IF NOT EXISTS match (
-                    id BIGINT UNSIGNED PRIMARY KEY,
-                    left BIGINT,
-                    right BIGINT,
-                    round_worth INT,
+                    id INTEGER PRIMARY KEY,
+                    left INTEGER,
+                    right INTEGER,
+                    round_worth INT UNSIGNED,
                     rounds TEXT,
                     notes TEXT
                 )
@@ -116,6 +116,36 @@ impl Login {
             )
             .inspect_err(|err| {
                 error!("When creating match indices, {}", err);
+            })
+            .ok();
+        }
+
+        if !table_exists(&db, "poster") {
+            db.execute(
+                indoc! {"
+                    CREATE TABLE IF NOT EXISTS poster (
+                        id INTEGER PRIMARY KEY,
+                        value TEXT,
+                        compiled TEXT,
+                        modified BIT,
+                        timestamp INTEGER
+                    )
+                "},
+                [],
+            )
+            .inspect_err(|err| {
+                error!("When initializing poster database, {}", err);
+            })
+            .ok();
+            db.execute(
+                indoc! {"
+                    CREATE INDEX idx_value ON poster (value);
+                    CREATE INDEX idx_timestamp ON poster (timestamp)
+                "},
+                [],
+            )
+            .inspect_err(|err| {
+                error!("When creating poster indices, {}", err);
             })
             .ok();
         }

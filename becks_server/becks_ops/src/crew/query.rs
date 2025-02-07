@@ -1,5 +1,4 @@
 use crate::prelude::*;
-use rusqlite::ToSql;
 
 pub trait Query {
     fn query(self, login: &Login) -> Vec<Id>;
@@ -59,10 +58,6 @@ fn show_id_names(login: &Login) {
         .map(Result::unwrap)
         .collect::<Vec<(u64, String)>>();
     debug!("All ids and names: {:?}", res);
-}
-
-fn box_sql(value: impl ToSql + 'static) -> Box<dyn ToSql> {
-    Box::new(value)
 }
 
 macro_rules! extend_query_sql {

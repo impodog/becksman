@@ -1,5 +1,6 @@
 mod crew;
 mod mat;
+mod poster;
 mod prelude;
 mod user;
 
@@ -32,6 +33,7 @@ pub async fn app() -> std::io::Result<()> {
             .configure(user::config_user)
             .configure(crew::config_crew)
             .configure(mat::config_mat)
+            .configure(poster::config_poster)
     })
     .bind(becks_db::CONFIG.server.addr)?
     .run()

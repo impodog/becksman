@@ -1,10 +1,8 @@
 [package]
-name = "becks_convey"
+name = "becks_poster"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
 serde = { version = "1.0.217", features = ["derive"] }
 becks_crew = { path = "../becks_crew" }
-becks_match = { path = "../becks_match" }
-becks_poster = { path = "../becks_poster" }

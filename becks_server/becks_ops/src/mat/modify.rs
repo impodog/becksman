@@ -14,5 +14,5 @@ pub fn modify_match_notes(login: &Login, mat: Id, notes: &str) -> bool {
             ":id": mat.to_prim(),
         },
     )
-    .is_ok()
+    .is_ok_and(|modifies| modifies > 0)
 }
