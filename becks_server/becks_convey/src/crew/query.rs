@@ -4,7 +4,7 @@ use becks_crew::*;
 #[derive(Serialize, Deserialize)]
 pub struct QueryByRequest {
     pub token: Token,
-    pub loc: Vec<CrewLocation>,
+    pub by: Vec<CrewLocation>,
     #[serde(default)]
     pub fuzzy: bool,
 }

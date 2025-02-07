@@ -363,6 +363,7 @@ dependencies = [
 name = "becks_ops"
 version = "0.1.0"
 dependencies = [
+ "becks_convey",
  "becks_crew",
  "becks_db",
  "becks_match",

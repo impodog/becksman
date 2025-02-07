@@ -16,7 +16,7 @@ pub enum Quit {
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Match {
-    pub total_rounds: u16,
+    pub total_rounds: usize,
     pub left: Id,
     pub right: Id,
     pub round_worth: u32,
@@ -28,12 +28,12 @@ pub struct Match {
 }
 
 impl Match {
-    pub fn new(total_rounds: u16, left: Id, right: Id) -> Self {
+    pub fn new(total_rounds: usize, left: Id, right: Id) -> Self {
         Self {
             total_rounds,
             left,
             right,
-            round_worth: (total_rounds as u32 * 5).div_ceil(3),
+            round_worth: (total_rounds as u32 * 10).div_ceil(3),
             rounds: Default::default(),
             quit: Default::default(),
             notes: Default::default(),

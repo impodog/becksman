@@ -6,7 +6,7 @@ pub trait Query {
 }
 
 pub struct QueryBy {
-    pub loc: Vec<CrewLocation>,
+    pub by: Vec<CrewLocation>,
     pub fuzzy: bool,
 }
 
@@ -61,14 +61,14 @@ fn show_id_names(login: &Login) {
     debug!("All ids and names: {:?}", res);
 }
 
-fn into_dynamic(value: impl ToSql + 'static) -> Box<dyn ToSql> {
+fn box_sql(value: impl ToSql + 'static) -> Box<dyn ToSql> {
     Box::new(value)
 }
 
 macro_rules! extend_query_sql {
     ($type: ty, $sql: ident, $params: ident, $index: expr, $value: expr) => {{
         $sql.push_str(&format!("{} = ?{}", <$type>::name(), $index));
-        $params.push(into_dynamic($value.convert()));
+        $params.push(box_sql($value.convert()));
     }};
 }
 
@@ -76,24 +76,26 @@ impl Query for QueryBy {
     fn query(self, login: &Login) -> Vec<Id> {
         use crate::crew::Column;
         use CrewLocation as Loc;
-        let len = self.loc.len();
+        let len = self.by.len();
         let mut sql = String::from("SELECT id FROM crew");
         let mut params = Vec::new();
 
         // special: if the query is empty, there is no WHERE
-        if !self.loc.is_empty() {
+        if !self.by.is_empty() {
             sql.push_str(" WHERE ");
         }
-        for (index, loc) in self.loc.into_iter().enumerate() {
+        for (index, loc) in self.by.into_iter().enumerate() {
             let index = index + 1;
             match loc {
                 Loc::Name(name) => {
-                    if self.fuzzy {
+                    let name = if self.fuzzy {
                         sql.push_str(&format!("{} GLOB ?{}", String::name(), index));
+                        format!("{}*", name)
                     } else {
                         sql.push_str(&format!("{} = ?{}", String::name(), index));
-                    }
-                    params.push(into_dynamic(name.convert()));
+                        name.convert()
+                    };
+                    params.push(box_sql(name));
                 }
                 Loc::Social(social) => extend_query_sql!(Social, sql, params, index, social),
                 Loc::Score(score) => extend_query_sql!(Score, sql, params, index, score),
@@ -107,7 +109,7 @@ impl Query for QueryBy {
             }
             // index is increased by 1 earlier
             if index != len {
-                sql.push_str(", ");
+                sql.push_str(" AND ");
             }
         }
         let params_ref = params

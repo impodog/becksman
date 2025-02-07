@@ -7,7 +7,7 @@ pub(super) async fn query_by_crew(req: web::Json<QueryByRequest>, db: DbData) ->
     debug!("Querying crew id by columns");
     let login = extract_login!(db, &req.token);
     let query = QueryBy {
-        loc: req.loc.clone(),
+        by: req.by.clone(),
         fuzzy: req.fuzzy,
     };
     let ids = query.query(login.as_ref());

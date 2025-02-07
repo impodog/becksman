@@ -97,7 +97,7 @@ impl Login {
                     right BIGINT,
                     round_worth INT,
                     rounds TEXT,
-                    notes MEDIUMTEXT
+                    notes TEXT
                 )
             "},
                 [],

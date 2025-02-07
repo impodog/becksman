@@ -7,6 +7,7 @@ edition = "2021"
 becks_crew = { path = "../becks_crew" }
 becks_match = { path = "../becks_match" }
 becks_db = { path = "../becks_db" }
+becks_convey = { path = "../becks_convey" }
 indoc = "2.0.5"
 log = "0.4.25"
 num_enum = "0.7.3"
