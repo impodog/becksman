@@ -17,3 +17,10 @@ def login() :
 def tok() -> dict:
     return {"token": token}
 
+def post(route: str, **json) -> requests.Response:
+    global token
+    return requests.post(ROOT + route, json = tok() | json)
+
+def get(route: str, **json) -> requests.Response:
+    global token
+    return requests.get(ROOT + route, json = tok() | json)

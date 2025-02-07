@@ -9,6 +9,7 @@ becks_db = { path = "becks_db" }
 becks_ops = { path = "becks_ops" }
 becks_crew = { path = "becks_crew" }
 becks_convey = { path = "becks_convey" }
+becks_match = { path = "becks_match" }
 env_logger = "0.11.6"
 indoc = "2.0.5"
 log = "0.4.25"

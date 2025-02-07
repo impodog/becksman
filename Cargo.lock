@@ -323,6 +323,7 @@ name = "becks_convey"
 version = "0.1.0"
 dependencies = [
  "becks_crew",
+ "becks_match",
  "serde",
 ]
 
@@ -350,16 +351,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "becks_match"
+version = "0.1.0"
+dependencies = [
+ "becks_crew",
+ "num_enum",
+ "serde",
+]
+
+[[package]]
 name = "becks_ops"
 version = "0.1.0"
 dependencies = [
  "becks_crew",
  "becks_db",
+ "becks_match",
  "indoc",
  "log",
  "num_enum",
  "rusqlite",
  "serde",
+ "thiserror",
 ]
 
 [[package]]
@@ -370,6 +382,7 @@ dependencies = [
  "becks_convey",
  "becks_crew",
  "becks_db",
+ "becks_match",
  "becks_ops",
  "env_logger",
  "indoc",
@@ -1464,6 +1477,26 @@ name = "synstructure"
 version = "0.13.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c8af7666ab7b6390ab78131fb5b0fce11d6b7a6951602017c35fa82800708971"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "thiserror"
+version = "2.0.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d452f284b73e6d76dd36758a0c8684b1d5be31f92b89d07fd5822175732206fc"
+dependencies = [
+ "thiserror-impl",
+]
+
+[[package]]
+name = "thiserror-impl"
+version = "2.0.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "26afc1baea8a989337eeb52b6e72a039780ce45c3edfcc9c5b9d112feeb173c2"
 dependencies = [
  "proc-macro2",
  "quote",

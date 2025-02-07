@@ -2,7 +2,7 @@ use crate::prelude::*;
 use rusqlite::ToSql;
 
 pub trait Query {
-    fn query(self, login: &Login) -> Vec<CrewId>;
+    fn query(self, login: &Login) -> Vec<Id>;
 }
 
 pub struct QueryBy {
@@ -22,9 +22,9 @@ macro_rules! handle_query_by {
                         );
                     })
                     .ok()
-                    .map(CrewId::from_prim)
+                    .map(Id::from_prim)
             })
-            .collect::<Vec<CrewId>>()
+            .collect::<Vec<Id>>()
         })
         .unwrap_or_else(|err| {
             error!("When querying all rows, {}",  err);
@@ -73,7 +73,7 @@ macro_rules! extend_query_sql {
 }
 
 impl Query for QueryBy {
-    fn query(self, login: &Login) -> Vec<CrewId> {
+    fn query(self, login: &Login) -> Vec<Id> {
         use crate::crew::Column;
         use CrewLocation as Loc;
         let len = self.loc.len();

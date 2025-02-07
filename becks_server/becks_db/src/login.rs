@@ -67,7 +67,55 @@ impl Login {
                 [],
             )
             .inspect_err(|err| {
-                error!("When creating indices, {}", err);
+                error!("When creating crew indices, {}", err);
+            })
+            .ok();
+        }
+
+        if !table_exists(&db, "round") {
+            db.execute(
+                indoc! {"
+                    CREATE TABLE IF NOT EXISTS round (
+                        id BIGINT UNSIGNED PRIMARY KEY,
+                        left_win BIT
+                    )
+                "},
+                [],
+            )
+            .inspect_err(|err| {
+                error!("When initializing round database, {}", err);
+            })
+            .ok();
+        }
+
+        if !table_exists(&db, "match") {
+            db.execute(
+                indoc! {"
+                CREATE TABLE IF NOT EXISTS match (
+                    id BIGINT UNSIGNED PRIMARY KEY,
+                    left BIGINT,
+                    right BIGINT,
+                    round_worth INT,
+                    rounds TEXT,
+                    notes MEDIUMTEXT
+                )
+            "},
+                [],
+            )
+            .inspect_err(|err| {
+                error!("When initializing match database, {}", err);
+            })
+            .ok();
+            db.execute(
+                indoc! {"
+                    CREATE INDEX idx_left ON match (left);
+                    CREATE INDEX idx_right ON match (right);
+                    CREATE INDEX idx_notes ON match (notes)
+                "},
+                [],
+            )
+            .inspect_err(|err| {
+                error!("When creating match indices, {}", err);
             })
             .ok();
         }

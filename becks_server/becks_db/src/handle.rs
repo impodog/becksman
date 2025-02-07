@@ -75,7 +75,7 @@ impl Db {
         let target =
             self.user()
                 .query_row("SELECT pass FROM user WHERE name = ?1", [name], |row| {
-                    row.get::<_, String>("pass")
+                    row.get::<_, String>(0)
                 });
         if let Ok(target) = target {
             if target != pass {

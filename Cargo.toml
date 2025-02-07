@@ -12,6 +12,7 @@ members = [
     "becks_server/becks_ops",
     "becks_server/becks_crew",
     "becks_server/becks_convey",
+    "becks_server/becks_match",
 ]
 
 [dependencies]

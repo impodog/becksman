@@ -2,9 +2,9 @@ use crate::choices::*;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Hash, Clone, Copy, Debug)]
-pub struct CrewId(u32);
+pub struct Id(u32);
 
-impl CrewId {
+impl Id {
     /// Generates a random but not (very) unique user id
     pub fn rand() -> Self {
         Self(rand::random())
@@ -36,8 +36,14 @@ pub struct RedRubber(pub Rubber);
 #[derive(Default, Clone, Serialize, Deserialize)]
 pub struct BlackRubber(pub Rubber);
 
-#[derive(Default, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct Score(pub i32);
+
+impl Default for Score {
+    fn default() -> Self {
+        Self(500)
+    }
+}
 
 #[derive(Default, Clone, Serialize, Deserialize)]
 pub struct CrewData {

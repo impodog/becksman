@@ -14,7 +14,7 @@ macro_rules! modify_by {
             <$type>::name(),
             $login.name
         );
-        if $column.modify($login.as_ref(), $req.id) {
+        if $column.modify($login.as_ref(), $req.crew) {
             info!("Modification of field {} is done", <$type>::name());
             HttpResponse::Ok()
                 .content_type(http::header::ContentType::plaintext())
@@ -52,16 +52,16 @@ pub(super) async fn acquire_crew(req: web::Json<AcquireRequest>, db: DbData) -> 
     let login = extract_login!(db, &req.token);
     let get_crew = move || -> Option<CrewData> {
         let data = CrewData {
-            name: String::query(&login, req.id, true)?,
-            social: Social::query(&login, req.id, true)?,
-            score: Score::query(&login, req.id, true)?,
-            gender: Gender::query(&login, req.id, false),
-            clothes: Clothes::query(&login, req.id, false),
-            hand: Hand::query(&login, req.id, false),
-            hold: Hold::query(&login, req.id, false),
-            paddle: Paddle::query(&login, req.id, false),
-            red: RedRubber::query(&login, req.id, false),
-            black: BlackRubber::query(&login, req.id, false),
+            name: String::query(&login, req.crew, true)?,
+            social: Social::query(&login, req.crew, true)?,
+            score: Score::query(&login, req.crew, true)?,
+            gender: Gender::query(&login, req.crew, false),
+            clothes: Clothes::query(&login, req.crew, false),
+            hand: Hand::query(&login, req.crew, false),
+            hold: Hold::query(&login, req.crew, false),
+            paddle: Paddle::query(&login, req.crew, false),
+            red: RedRubber::query(&login, req.crew, false),
+            black: BlackRubber::query(&login, req.crew, false),
         };
         Some(data)
     };

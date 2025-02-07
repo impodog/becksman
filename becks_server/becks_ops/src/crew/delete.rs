@@ -1,13 +1,13 @@
 use crate::prelude::*;
 
-pub fn delete_crew(login: &Login, id: CrewId) -> bool {
+pub fn delete_crew(login: &Login, crew: Id) -> bool {
     let db = login.db();
     db.execute(
         indoc! {"DELETE FROM crew WHERE id = (:id)"},
-        rusqlite::named_params! {":id": id.to_prim()},
+        rusqlite::named_params! {":id": crew.to_prim()},
     )
     .inspect_err(|err| {
-        error!("When deleting id {:?}, {}", id, err);
+        error!("When deleting crew {:?}, {}", crew, err);
     })
     .is_ok_and(|modified| modified > 0)
 }

@@ -1,14 +1,13 @@
 use crate::prelude::*;
-use becks_crew::*;
+use becks_match::*;
 
 #[derive(Serialize, Deserialize)]
 pub struct CreateRequest {
     pub token: Token,
-    pub name: String,
-    pub social: Social,
+    pub mat: Match,
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct CreateResponse {
-    pub crew: Id,
+    pub mat: Id,
 }

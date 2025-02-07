@@ -1,9 +1,9 @@
 [package]
-name = "becks_convey"
+name = "becks_match"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+num_enum = "0.7.3"
 serde = { version = "1.0.217", features = ["derive"] }
 becks_crew = { path = "../becks_crew" }
-becks_match = { path = "../becks_match" }

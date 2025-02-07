@@ -11,5 +11,5 @@ pub struct QueryByRequest {
 
 #[derive(Serialize, Deserialize)]
 pub struct QueryByResponse {
-    pub ids: Vec<CrewId>,
+    pub ids: Vec<Id>,
 }

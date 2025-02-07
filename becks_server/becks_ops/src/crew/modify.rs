@@ -6,7 +6,7 @@ pub trait Column: Sized {
     fn convert(self) -> Self::Target;
     fn acquire(value: Self::Target) -> Self;
     /// Returns true if modification is successful
-    fn modify(self, login: &Login, id: CrewId) -> bool {
+    fn modify(self, login: &Login, crew: Id) -> bool {
         login
             .db()
             .execute(
@@ -19,7 +19,7 @@ pub trait Column: Sized {
                 },
                 rusqlite::named_params! {
                     ":value": self.convert(),
-                    ":id": id.to_prim(),
+                    ":id": crew.to_prim(),
                 },
             )
             .inspect_err(|err| {
@@ -27,7 +27,7 @@ pub trait Column: Sized {
             })
             .is_ok_and(|modified| modified > 0)
     }
-    fn query(login: &Login, id: CrewId, required: bool) -> Option<Self> {
+    fn query(login: &Login, crew: Id, required: bool) -> Option<Self> {
         login
             .db()
             .query_row(
@@ -38,7 +38,7 @@ pub trait Column: Sized {
                     column = Self::name(),
                 },
                 rusqlite::named_params! {
-                    ":id": id.to_prim(),
+                    ":id": crew.to_prim(),
                 },
                 |row| row.get::<_, Self::Target>(0),
             )
@@ -47,7 +47,7 @@ pub trait Column: Sized {
                     warn!(
                         "Failed to select required column {} from {:?}: {}",
                         Self::name(),
-                        id,
+                        crew,
                         err
                     );
                 }
