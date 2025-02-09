@@ -19,10 +19,7 @@ where
         let id = value.id().await;
         list.push((value, f(id).await?));
     }
-    async {
-        list.sort_unstable_by(|(_, lhs), (_, rhs)| lhs.cmp(rhs));
-    }
-    .await;
+    list.sort_unstable_by(|(_, lhs), (_, rhs)| lhs.cmp(rhs));
     *src = list.into_iter().map(|(crew, _)| crew).collect();
 
     Ok(())

@@ -1,2 +1,2 @@
 rm -v ./*.db
-rm -v becksman.toml
+rm -v becksman-*.toml

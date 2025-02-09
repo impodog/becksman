@@ -12,6 +12,7 @@ enum LoginError {
     Unexpected,
 }
 
+#[derive(Debug)]
 pub struct Login {
     token: Token,
 }

@@ -18,6 +18,28 @@ impl Default for Client {
 }
 
 #[derive(Debug, Deserialize, Serialize)]
+pub struct Assets {
+    pub icon: String,
+    pub text: String,
+    pub fonts: Vec<String>,
+    pub primary_font: String,
+}
+impl Default for Assets {
+    fn default() -> Self {
+        Assets {
+            icon: "assets/icon.bmp".to_owned(),
+            text: "assets/text.ini".to_owned(),
+            fonts: vec![
+                "assets/JetBrains.ttf".to_owned(),
+                "assets/Hack.ttf".to_owned(),
+                "assets/NotoSans.ttc".to_owned(),
+            ],
+            primary_font: "Noto Sans CJK SC".to_owned(),
+        }
+    }
+}
+
+#[derive(Debug, Deserialize, Serialize)]
 pub struct Request {
     pub update_relay: std::time::Duration,
 }
@@ -32,6 +54,7 @@ impl Default for Request {
 #[derive(Default, Debug, Serialize, Deserialize)]
 pub struct Config {
     pub client: Client,
+    pub assets: Assets,
     pub request: Request,
 }
 
@@ -77,7 +100,7 @@ pub fn save_config() {
 }
 
 #[macro_export]
-macro_rules! url {
+macro_rules! server_url {
     ($route: expr) => {
         format!("{}/{}", $crate::config::CONFIG.client.addr, $route)
     };
