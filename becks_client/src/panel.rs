@@ -1,10 +1,20 @@
 use crate::prelude::*;
-use crate::*;
 use std::ops::{Deref, DerefMut};
 use std::sync::{Arc, Mutex};
 
+#[allow(unused_variables)]
 pub trait Panel: Send + Sync + std::fmt::Debug {
-    fn update(&mut self, message: MainMessage) -> Task<MainMessage>;
+    fn update(&mut self, message: MainMessage) -> Task<MainMessage> {
+        Task::none()
+    }
+    /// This method is preferred if a login is present, defaults to the prior [`Panel::update`]
+    fn update_with_login(&mut self, login: Arc<Login>, message: MainMessage) -> Task<MainMessage> {
+        self.update(message)
+    }
+    /// Called when rewound to the panel
+    fn on_rewind_to(&mut self) -> Task<MainMessage> {
+        Task::none()
+    }
     fn view(&self) -> Element<MainMessage>;
 }
 
@@ -32,8 +42,10 @@ impl DerefMut for PanelHandle {
 
 #[derive(Debug, Clone)]
 pub enum MainMessage {
+    None,
     LoginMessage(login::LoginMessage),
     Login(Arc<Login>),
-    Open(Arc<Mutex<Option<PanelHandle>>>),
+    Logout,
+    Open(Acquire<PanelHandle>),
     Rewind,
 }

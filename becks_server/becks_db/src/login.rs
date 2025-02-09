@@ -184,7 +184,7 @@ impl Login {
 
 pub struct LoginMap {
     map: HashMap<Token, Arc<Login>>,
-    logged: HashSet<String>,
+    logged: HashMap<String, Token>,
 }
 
 impl Default for LoginMap {
@@ -219,16 +219,16 @@ impl LoginMap {
         }
     }
 
-    /// Inserts a new login into the map, returning its token on success;
-    /// If the user has already logged in, None is returned
-    pub(crate) fn insert(&mut self, login: Login) -> Option<Token> {
-        if self.logged.insert(login.name.clone()) {
-            let token = self.gen_token();
-            self.map.insert(token, Arc::new(login));
-            Some(token)
-        } else {
-            None
-        }
+    /// Inserts a new login into the map, returning its token;
+    /// If the user has already logged in, the old token is returned
+    pub(crate) fn insert(&mut self, login: Login) -> Token {
+        let token = self.gen_token();
+        let Self { logged, map } = self;
+        let entry = logged.entry(login.name.clone());
+        *entry.or_insert_with(|| {
+            map.insert(token, Arc::new(login));
+            token
+        })
     }
 
     /// Removes the login entry of the user, or return None

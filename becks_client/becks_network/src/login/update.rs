@@ -19,7 +19,7 @@ async fn update_login(login: &Login) {
 
 pub fn start_update_login(login: Arc<Login>) {
     tokio::spawn(async move {
-        loop {
+        while !*login.end.lock().unwrap() {
             let future = update_login(login.as_ref());
             tokio::time::sleep(CONFIG.request.update_relay).await;
             future.await;

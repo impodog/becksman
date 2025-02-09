@@ -2,7 +2,7 @@ use crate::prelude::*;
 use becks_convey::poster::*;
 use becks_poster::*;
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct PosterInfo {
     pub id: Id,
     pub data: Option<Poster>,

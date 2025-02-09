@@ -2,7 +2,16 @@ use num_enum::{IntoPrimitive, TryFromPrimitive};
 use serde::{Deserialize, Serialize};
 
 #[derive(
-    Default, Clone, Copy, PartialEq, Eq, IntoPrimitive, TryFromPrimitive, Serialize, Deserialize,
+    Debug,
+    Default,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    IntoPrimitive,
+    TryFromPrimitive,
+    Serialize,
+    Deserialize,
 )]
 #[repr(u8)]
 pub enum Social {
@@ -12,7 +21,16 @@ pub enum Social {
 }
 
 #[derive(
-    Default, Clone, Copy, PartialEq, Eq, IntoPrimitive, TryFromPrimitive, Serialize, Deserialize,
+    Debug,
+    Default,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    IntoPrimitive,
+    TryFromPrimitive,
+    Serialize,
+    Deserialize,
 )]
 #[repr(u8)]
 pub enum Gender {
@@ -22,7 +40,16 @@ pub enum Gender {
 }
 
 #[derive(
-    Default, Clone, Copy, PartialEq, Eq, IntoPrimitive, TryFromPrimitive, Serialize, Deserialize,
+    Debug,
+    Default,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    IntoPrimitive,
+    TryFromPrimitive,
+    Serialize,
+    Deserialize,
 )]
 #[repr(u8)]
 pub enum Clothes {
@@ -36,7 +63,16 @@ pub enum Clothes {
 }
 
 #[derive(
-    Default, Clone, Copy, PartialEq, Eq, IntoPrimitive, TryFromPrimitive, Serialize, Deserialize,
+    Debug,
+    Default,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    IntoPrimitive,
+    TryFromPrimitive,
+    Serialize,
+    Deserialize,
 )]
 #[repr(u8)]
 pub enum Hand {
@@ -46,7 +82,16 @@ pub enum Hand {
 }
 
 #[derive(
-    Default, Clone, Copy, PartialEq, Eq, IntoPrimitive, TryFromPrimitive, Serialize, Deserialize,
+    Debug,
+    Default,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    IntoPrimitive,
+    TryFromPrimitive,
+    Serialize,
+    Deserialize,
 )]
 #[repr(u8)]
 pub enum Hold {

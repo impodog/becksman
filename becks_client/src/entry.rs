@@ -4,9 +4,21 @@ use std::borrow::Cow;
 use std::sync::Arc;
 use widget::text;
 
-struct Main {
-    login: Option<Arc<Login>>,
+pub struct Main {
+    pub login: Option<Arc<Login>>,
     panels: Vec<PanelHandle>,
+}
+
+impl Drop for Main {
+    fn drop(&mut self) {
+        if let Some(login) = self.login.take() {
+            iced::executor::Default::new()
+                .unwrap()
+                .block_on(async move { login.log_out().await })
+                .inspect_err(|err| error!("When logging out on program exit, {}", err))
+                .ok();
+        }
+    }
 }
 
 impl Main {
@@ -23,19 +35,40 @@ impl Main {
                 self.login = Some(login);
                 Task::none()
             }
+            MainMessage::Logout => {
+                if let Some(login) = self.login.take() {
+                    Task::perform(async move { login.log_out().await }, |result| {
+                        if let Err(err) = result {
+                            error!("When logging out, {}", err);
+                        }
+                        MainMessage::None
+                    })
+                } else {
+                    Task::none()
+                }
+            }
             MainMessage::Open(panel) => {
-                if let Some(panel) = panel.lock().unwrap().take() {
+                if let Some(panel) = panel.try_acquire() {
                     self.panels.push(panel);
                 }
                 Task::none()
             }
             MainMessage::Rewind => {
                 self.panels.pop();
-                Task::none()
+                if let Some(panel) = self.panels.last_mut() {
+                    panel.on_rewind_to()
+                } else {
+                    Task::none()
+                }
             }
+            MainMessage::None => Task::none(),
             _ => {
                 if let Some(handle) = self.panels.last_mut() {
-                    handle.update(message)
+                    if let Some(login) = self.login.as_ref() {
+                        handle.update_with_login(login.clone(), message)
+                    } else {
+                        handle.update(message)
+                    }
                 } else {
                     Task::none()
                 }
@@ -76,13 +109,14 @@ pub fn run_app() {
         .collect::<Vec<_>>();
     let fonts = Box::leak(Box::new(fonts));
 
-    iced::application("Becksman", Main::update, Main::view)
+    iced::application(assets::TEXT.get("title"), Main::update, Main::view)
         .centered()
         .window(window::Settings {
             icon: Some(icon),
             ..Default::default()
         })
-        .theme(|_state| iced::Theme::SolarizedDark)
+        .theme(|_main| iced::Theme::SolarizedDark)
+        .scale_factor(|_main| 2.0)
         .settings(iced::Settings {
             fonts: fonts
                 .iter()

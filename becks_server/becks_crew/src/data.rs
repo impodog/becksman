@@ -19,21 +19,21 @@ impl Id {
     }
 }
 
-#[derive(Default, Clone, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct Paddle {
     pub brand: String,
     pub kind: String,
 }
 
-#[derive(Default, Clone, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct Rubber {
     pub brand: String,
     pub kind: String,
 }
 
-#[derive(Default, Clone, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct RedRubber(pub Rubber);
-#[derive(Default, Clone, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct BlackRubber(pub Rubber);
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
@@ -45,7 +45,7 @@ impl Default for Score {
     }
 }
 
-#[derive(Default, Clone, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct CrewData {
     pub name: String,
     pub social: Social,

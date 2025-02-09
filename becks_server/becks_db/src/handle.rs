@@ -85,7 +85,7 @@ impl Db {
             }
             let mut login = self.login.write().unwrap();
             let value = crate::Login::new(name.to_owned());
-            login.insert(value)
+            Some(login.insert(value))
         } else {
             warn!("User {} is not found", name);
             None

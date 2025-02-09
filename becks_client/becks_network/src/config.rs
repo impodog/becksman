@@ -2,6 +2,18 @@ use crate::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::sync::{LazyLock, RwLock};
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Interact {
+    pub recent: std::time::Duration,
+}
+impl Default for Interact {
+    fn default() -> Self {
+        Self {
+            recent: std::time::Duration::new(604800, 0),
+        }
+    }
+}
+
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Client {
     pub addr: std::net::SocketAddr,
@@ -28,7 +40,7 @@ impl Default for Assets {
     fn default() -> Self {
         Assets {
             icon: "assets/icon.bmp".to_owned(),
-            text: "assets/text.ini".to_owned(),
+            text: "assets/zh_cn.ini".to_owned(),
             fonts: vec![
                 "assets/JetBrains.ttf".to_owned(),
                 "assets/Hack.ttf".to_owned(),
@@ -53,6 +65,7 @@ impl Default for Request {
 
 #[derive(Default, Debug, Serialize, Deserialize)]
 pub struct Config {
+    pub interact: Interact,
     pub client: Client,
     pub assets: Assets,
     pub request: Request,
@@ -102,6 +115,6 @@ pub fn save_config() {
 #[macro_export]
 macro_rules! server_url {
     ($route: expr) => {
-        format!("{}/{}", $crate::config::CONFIG.client.addr, $route)
+        format!("http://{}/{}", $crate::config::CONFIG.client.addr, $route)
     };
 }

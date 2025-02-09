@@ -1,11 +1,11 @@
 use crate::prelude::*;
 
-#[derive(Default, Serialize, Deserialize, Clone, Copy)]
+#[derive(Debug, Default, Serialize, Deserialize, Clone, Copy)]
 pub struct Round {
     pub left_win: bool,
 }
 
-#[derive(Serialize, Deserialize, Default, TryFromPrimitive, IntoPrimitive, Clone, Copy)]
+#[derive(Debug, Serialize, Deserialize, Default, TryFromPrimitive, IntoPrimitive, Clone, Copy)]
 #[repr(u8)]
 pub enum Quit {
     #[default]
@@ -14,7 +14,7 @@ pub enum Quit {
     RightQuit,
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Match {
     pub total_rounds: usize,
     pub left: Id,

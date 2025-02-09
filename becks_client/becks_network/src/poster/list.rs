@@ -12,7 +12,7 @@ impl crate::util::GetId for RwLock<PosterInfo> {
     }
 }
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct PosterList {
     list: Vec<RwLock<PosterInfo>>,
 }

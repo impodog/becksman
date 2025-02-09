@@ -2,7 +2,7 @@ use crate::prelude::*;
 use becks_convey::crew::*;
 use becks_crew::*;
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct CrewInfo {
     id: Id,
     data: Option<CrewData>,

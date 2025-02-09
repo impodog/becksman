@@ -2,7 +2,7 @@ use crate::prelude::*;
 use becks_convey::mat::*;
 use becks_match::*;
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct MatchInfo {
     pub id: Id,
     pub data: Option<Match>,

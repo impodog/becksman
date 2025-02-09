@@ -12,7 +12,7 @@ impl crate::util::GetId for RwLock<CrewInfo> {
     }
 }
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct CrewList {
     list: Vec<RwLock<CrewInfo>>,
 }

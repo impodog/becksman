@@ -12,7 +12,7 @@ impl crate::util::GetId for RwLock<MatchInfo> {
     }
 }
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct MatchList {
     list: Vec<RwLock<MatchInfo>>,
 }
