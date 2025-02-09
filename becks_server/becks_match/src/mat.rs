@@ -21,6 +21,7 @@ pub struct Match {
     pub right: Id,
     pub round_worth: u32,
     pub rounds: Vec<Round>,
+    pub timestamp: u64,
     #[serde(default)]
     pub quit: Quit,
     #[serde(default)]
@@ -28,13 +29,14 @@ pub struct Match {
 }
 
 impl Match {
-    pub fn new(total_rounds: usize, left: Id, right: Id) -> Self {
+    pub fn new(total_rounds: usize, left: Id, right: Id, timestamp: u64) -> Self {
         Self {
             total_rounds,
             left,
             right,
             round_worth: (total_rounds as u32 * 10).div_ceil(3),
             rounds: Default::default(),
+            timestamp,
             quit: Default::default(),
             notes: Default::default(),
         }

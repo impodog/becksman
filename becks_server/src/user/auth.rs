@@ -24,9 +24,7 @@ pub(super) async fn log_in(req: web::Json<LoginRequest>, db: DbData) -> HttpResp
     }
 }
 
-#[post("/logout")]
-pub(super) async fn log_out(req: web::Json<LogoutRequest>, db: DbData) -> HttpResponse {
-    debug!("Log-out attempt: token {:?}", req.token);
+pub(super) async fn log_out_work(req: LogoutRequest, db: &becks_db::Db) -> HttpResponse {
     if db.log_out(req.token) {
         HttpResponse::Ok()
             .content_type(http::header::ContentType::plaintext())
@@ -37,6 +35,12 @@ pub(super) async fn log_out(req: web::Json<LogoutRequest>, db: DbData) -> HttpRe
             .content_type(http::header::ContentType::plaintext())
             .body("token is not available")
     }
+}
+
+#[post("/logout")]
+pub(super) async fn log_out(req: web::Json<LogoutRequest>, db: DbData) -> HttpResponse {
+    debug!("Log-out attempt: token {:?}", req.token);
+    log_out_work(*req, db.as_ref()).await
 }
 
 #[post("/create")]

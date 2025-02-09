@@ -1,55 +1,42 @@
 use crate::prelude::*;
-use std::path::PathBuf;
-use std::sync::LazyLock;
-use std::sync::RwLock;
+use serde::{Deserialize, Serialize};
+use std::sync::{LazyLock, RwLock};
 
-#[derive(Serialize, Deserialize, Clone)]
-pub struct Database {
-    pub becksman: PathBuf,
-    pub user_base: PathBuf,
-}
-impl Default for Database {
-    fn default() -> Self {
-        Self {
-            becksman: PathBuf::from("_becksman.db"),
-            user_base: PathBuf::from("./"),
-        }
-    }
-}
-
-#[derive(Serialize, Deserialize, Clone)]
-pub struct Server {
+#[derive(Debug, Deserialize, Serialize)]
+pub struct Client {
     pub addr: std::net::SocketAddr,
 }
-impl Default for Server {
+impl Default for Client {
     fn default() -> Self {
         Self {
-            addr: "127.0.0.1:1145".parse().expect("should be valid address"),
+            addr: std::net::SocketAddr::new(
+                std::net::IpAddr::V4(std::net::Ipv4Addr::new(127, 0, 0, 1)),
+                1145,
+            ),
         }
     }
 }
 
-#[derive(Serialize, Deserialize, Clone)]
-pub struct User {
-    pub timeout: std::time::Duration,
+#[derive(Debug, Deserialize, Serialize)]
+pub struct Request {
+    pub update_relay: std::time::Duration,
 }
-impl Default for User {
+impl Default for Request {
     fn default() -> Self {
         Self {
-            timeout: std::time::Duration::new(60, 0),
+            update_relay: std::time::Duration::new(40, 0),
         }
     }
 }
 
-#[derive(Default, Serialize, Deserialize, Clone)]
+#[derive(Default, Debug, Serialize, Deserialize)]
 pub struct Config {
-    pub db: Database,
-    pub server: Server,
-    pub user: User,
+    pub client: Client,
+    pub request: Request,
 }
 
 impl Config {
-    pub const CONFIG_PATH: &'static str = "becksman-server.toml";
+    pub const CONFIG_PATH: &'static str = "becksman-client.toml";
 
     pub fn invoke_lazy(&self) {}
 
@@ -78,7 +65,7 @@ pub fn save_config() {
     CONFIG.invoke_lazy();
     let lock = SAVE_CONFIG.read().unwrap();
     if let Some(config) = &*lock {
-        let value = toml::to_string_pretty(config).expect("serialization should succeed");
+        let value = toml::to_string(config).expect("serialization should succeed");
         std::fs::write(Config::CONFIG_PATH, value).unwrap_or_else(|err| {
             error!(
                 "When writing configuration to {:?}, {}",
@@ -87,4 +74,11 @@ pub fn save_config() {
             );
         });
     }
+}
+
+#[macro_export]
+macro_rules! url {
+    ($route: expr) => {
+        format!("{}/{}", $crate::config::CONFIG.client.addr, $route)
+    };
 }

@@ -1,5 +1,6 @@
 use crate::prelude::*;
 use crate::CONFIG;
+use std::sync::RwLockReadGuard;
 use std::sync::{Arc, Mutex, MutexGuard, RwLock};
 
 pub struct Db {
@@ -108,5 +109,10 @@ impl Db {
         let login = self.login.read().unwrap();
         trace!("Request with token {:?}", token);
         login.get(token).cloned()
+    }
+
+    /// Locks and gets the login map
+    pub fn login_map(&self) -> RwLockReadGuard<crate::LoginMap> {
+        self.login.read().unwrap()
     }
 }

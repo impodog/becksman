@@ -25,6 +25,7 @@ async fn hello() -> impl Responder {
 
 pub async fn app() -> std::io::Result<()> {
     let db = Arc::new(becks_db::Db::connect());
+    user::start_clean_up(db.clone());
     HttpServer::new(move || {
         App::new()
             .app_data(web::Data::new(db.clone()))

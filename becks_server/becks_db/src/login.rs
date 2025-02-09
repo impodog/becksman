@@ -1,11 +1,14 @@
 use crate::prelude::*;
+use std::cell::Cell;
 use std::collections::{HashMap, HashSet};
 use std::ops::Deref;
 use std::sync::{Arc, Mutex, MutexGuard};
+use std::time::{Duration, SystemTime};
 
 pub struct Login {
     pub name: String,
     pub db: Mutex<Connection>,
+    last_update: Mutex<Cell<SystemTime>>,
 }
 
 /// Returns whether the table exists in a database file, returning true on sqlite errors
@@ -96,6 +99,7 @@ impl Login {
                     left INTEGER,
                     right INTEGER,
                     round_worth INT UNSIGNED,
+                    timestamp INT UNSIGNED,
                     rounds TEXT,
                     notes TEXT
                 )
@@ -110,6 +114,7 @@ impl Login {
                 indoc! {"
                     CREATE INDEX idx_left ON match (left);
                     CREATE INDEX idx_right ON match (right);
+                    CREATE INDEX idx_timestamp ON match (timestamp)
                     CREATE INDEX idx_notes ON match (notes)
                 "},
                 [],
@@ -153,11 +158,27 @@ impl Login {
         Self {
             name,
             db: Mutex::new(db),
+            last_update: Mutex::new(Cell::new(std::time::SystemTime::now())),
         }
     }
 
     pub fn db(&self) -> MutexGuard<Connection> {
         self.db.lock().unwrap()
+    }
+
+    /// Updates the time stored in this login
+    pub fn update_time(&self) {
+        self.last_update
+            .lock()
+            .unwrap()
+            .set(std::time::SystemTime::now());
+    }
+
+    /// Returns the time elapsed since last update call
+    pub fn duration_since_last_update(&self) -> std::time::Duration {
+        std::time::SystemTime::now()
+            .duration_since(self.last_update.lock().unwrap().get())
+            .unwrap()
     }
 }
 

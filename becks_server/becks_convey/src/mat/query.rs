@@ -6,6 +6,7 @@ use std::ops::{Deref, DerefMut};
 pub enum QueryMatchBy {
     Player(Id),
     Note(String),
+    Time { mid: u64, error: u64 },
 }
 
 #[derive(Serialize, Deserialize)]

@@ -14,6 +14,7 @@ members = [
     "becks_server/becks_convey",
     "becks_server/becks_match",
     "becks_server/becks_poster",
+    "becks_client/becks_network",
 ]
 
 [dependencies]

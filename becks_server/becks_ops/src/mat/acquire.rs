@@ -32,7 +32,7 @@ pub fn acquire_match(login: &Login, mat: Id, required: bool) -> Option<becks_mat
         .db()
         .query_row(
             indoc! {"
-            SELECT (left, right, round_worth, rounds, notes)
+            SELECT (left, right, round_worth, timestamp, rounds, notes)
             FROM match
             WHERE id = (:id)
         "},
@@ -64,6 +64,7 @@ pub fn acquire_match(login: &Login, mat: Id, required: bool) -> Option<becks_mat
                     left: Id::from_prim(row.get("left")?),
                     right: Id::from_prim(row.get("right")?),
                     round_worth: row.get("round_worth")?,
+                    timestamp: row.get("timestamp")?,
                     rounds,
                     quit: Quit::try_from(row.get::<_, u8>("quit")?).unwrap_or_else(|err| {
                         error!("When acquiring quit field in match, {}", err);

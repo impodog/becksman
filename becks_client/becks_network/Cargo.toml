@@ -1,0 +1,17 @@
+[package]
+name = "becks_network"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0.95"
+becks_crew = { path = "../../becks_server/becks_crew" }
+becks_match = { path = "../../becks_server/becks_match" }
+becks_poster = { path = "../../becks_server/becks_poster" }
+becks_convey = { path = "../../becks_server/becks_convey" }
+log = "0.4.25"
+reqwest = { version = "0.12.12", features = ["json"] }
+serde = { version = "1.0.217", features = ["derive"] }
+tokio = { version = "1.43.0", features = ["full"] }
+toml = "0.8.20"
+thiserror = "2.0.11"

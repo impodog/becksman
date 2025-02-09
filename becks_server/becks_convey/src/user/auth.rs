@@ -21,7 +21,8 @@ pub struct LoginResponse {
     pub token: Token,
 }
 
-#[derive(Serialize, Deserialize)]
+/// This is implemented as [`Copy`] so that it is callable from within the server
+#[derive(Serialize, Deserialize, Clone, Copy)]
 pub struct LogoutRequest {
     pub token: Token,
 }
