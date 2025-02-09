@@ -1,49 +1,48 @@
 use super::data::*;
 use crate::prelude::*;
-use becks_convey::crew::*;
-use becks_crew::*;
+use becks_convey::poster::*;
+use becks_poster::*;
 use std::future::Future;
 use std::ops::Deref;
 use tokio::sync::RwLock;
 
-impl crate::util::GetId for RwLock<CrewInfo> {
+impl crate::util::GetId for RwLock<PosterInfo> {
     async fn id(&self) -> Id {
         self.read().await.id()
     }
 }
 
 #[derive(Default)]
-pub struct CrewList {
-    list: Vec<RwLock<CrewInfo>>,
+pub struct PosterList {
+    list: Vec<RwLock<PosterInfo>>,
 }
 
-impl Deref for CrewList {
-    type Target = Vec<RwLock<CrewInfo>>;
+impl Deref for PosterList {
+    type Target = Vec<RwLock<PosterInfo>>;
     fn deref(&self) -> &Self::Target {
         &self.list
     }
 }
 
-impl CrewList {
-    /// Queries the crew list and returns the stored form
-    pub async fn query(login: &Login, by: Vec<CrewLocation>) -> Result<Self> {
+impl PosterList {
+    /// Queries the poster list and returns it
+    pub async fn query(login: &Login, by: Vec<query::QueryPosterBy>) -> Result<Self> {
         let response = login
             .client()
-            .get(server_url!("crew/query"))
-            .json(&query::QueryByRequest {
+            .get(server_url!("poster/query"))
+            .json(&query::QueryRequest {
                 token: login.token(),
                 by,
-                fuzzy: true,
             })
             .send()
             .await?
             .error_for_status()?;
-        let response: query::QueryByResponse = response.json().await?;
+        let response: query::QueryResponse = response.json().await?;
         let result = Self {
             list: response
                 .ids
                 .into_iter()
-                .map(|id| RwLock::new(CrewInfo::new(id)))
+                .map(|id| RwLock::new(PosterInfo::new(id)))
                 .collect(),
         };
         Ok(result)
@@ -59,7 +58,7 @@ impl CrewList {
         crate::util::sort_by_value(&mut self.list, f).await
     }
 
-    /// Forces reload all crew from the server
+    /// Forces reload all poster from the server
     pub async fn reload(&self, login: &Login) -> Result<()> {
         let mut futures = Vec::new();
         for crew in self.list.iter() {

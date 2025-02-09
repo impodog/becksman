@@ -1,66 +1,68 @@
 use crate::prelude::*;
-use becks_convey::mat::*;
-use becks_match::*;
+use becks_convey::poster::*;
+use becks_poster::*;
 
 #[derive(Clone)]
-pub struct MatchInfo {
+pub struct PosterInfo {
     pub id: Id,
-    pub data: Option<Match>,
+    pub data: Option<Poster>,
 }
 
-impl MatchInfo {
+impl PosterInfo {
     pub fn new(id: Id) -> Self {
         Self { id, data: None }
     }
 
-    /// Uploads a new match to the server, returning the created match info
-    pub async fn create(login: &Login, mat: Match) -> Result<Self> {
+    /// Uploads a new poster to the server, returning the created poster info
+    ///
+    /// Only the value data is required, and compilation will be done at the server-side
+    pub async fn create(login: &Login, value: String) -> Result<Self> {
         let response = login
             .client()
-            .post(server_url!("mat/create"))
+            .post(server_url!("poster/create"))
             .json(&create::CreateRequest {
                 token: login.token(),
-                mat,
+                value,
             })
             .send()
             .await?
             .error_for_status()?;
         let response: create::CreateResponse = response.json().await?;
         Ok(Self {
-            id: response.mat,
+            id: response.poster,
             data: None,
         })
     }
 
-    /// Forces to reload match data from the server
-    pub async fn reload(&mut self, login: &Login) -> Result<&mut Match> {
+    /// Forces to reload poster data from the server
+    pub async fn reload(&mut self, login: &Login) -> Result<&mut Poster> {
         let response = login
             .client()
-            .get(server_url!("mat/acquire"))
+            .get(server_url!("poster/acquire"))
             .json(&acquire::AcquireRequest {
                 token: login.token(),
-                mat: self.id,
+                poster: self.id(),
             })
             .send()
             .await?
             .error_for_status()?;
         let response: acquire::AcquireResponse = response.json().await?;
-        Ok(self.data.insert(response.mat))
+        Ok(self.data.insert(response.poster))
     }
 
     pub fn id(&self) -> Id {
         self.id
     }
 
-    /// Loads match data if not previously loaded, then returns it
-    pub async fn load(&mut self, login: &Login) -> Result<&mut Match> {
+    /// Loads poster data if not previously loaded, then returns it
+    pub async fn load(&mut self, login: &Login) -> Result<&mut Poster> {
         if self.data.is_none() {
             self.reload(login).await?;
         }
         Ok(self
             .data
             .as_mut()
-            .expect("match data should be loaded after check"))
+            .expect("poster data should be loaded after check"))
     }
 
     /// Un-loads the poster data, so that any further operation must be loaded again
@@ -68,14 +70,14 @@ impl MatchInfo {
         self.data = None;
     }
 
-    pub async fn modify(&mut self, login: &Login, notes: String) -> Result<()> {
+    pub async fn modify(&mut self, login: &Login, value: String) -> Result<()> {
         let _response = login
             .client()
-            .post(server_url!("mat/modify"))
+            .post(server_url!("poster/modify"))
             .json(&modify::ModifyRequest {
                 token: login.token(),
-                mat: self.id(),
-                notes,
+                poster: self.id(),
+                value,
             })
             .send()
             .await?

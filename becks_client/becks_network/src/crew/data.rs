@@ -68,7 +68,7 @@ impl CrewInfo {
         self.id
     }
 
-    /// Loads user data if not previously loaded, then returns it
+    /// Loads crew data if not previously loaded, then returns it
     pub async fn load(&mut self, login: &Login) -> Result<&mut CrewData> {
         if self.data.is_none() {
             self.reload(login).await?;
@@ -76,7 +76,7 @@ impl CrewInfo {
         Ok(self
             .data
             .as_mut()
-            .expect("data should be loaded after check"))
+            .expect("crew data should be loaded after check"))
     }
 
     /// Un-loads the crew data, so that any further operation must be loaded again
