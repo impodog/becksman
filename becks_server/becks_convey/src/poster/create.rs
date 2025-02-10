@@ -5,6 +5,7 @@ use becks_poster::*;
 pub struct CreateRequest {
     pub token: Token,
     pub value: String,
+    pub images: Vec<String>,
 }
 
 #[derive(Serialize, Deserialize)]

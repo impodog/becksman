@@ -110,14 +110,12 @@ impl Panel for LoginPanel {
         ]
         .push_maybe(match *self.error.lock().unwrap() {
             ErrorStatus::None => None,
-            ErrorStatus::Login => Some(
-                text(assets::TEXT.get("login_error_login"))
-                    .color(iced::Color::from_rgb8(255, 50, 50)),
-            ),
-            ErrorStatus::Create => Some(
-                text(assets::TEXT.get("login_error_create"))
-                    .color(iced::Color::from_rgb8(255, 50, 50)),
-            ),
+            ErrorStatus::Login => {
+                Some(text(assets::TEXT.get("login_error_login")).style(widget::text::danger))
+            }
+            ErrorStatus::Create => {
+                Some(text(assets::TEXT.get("login_error_create")).style(widget::text::danger))
+            }
         })
         .spacing(20)
         .into()

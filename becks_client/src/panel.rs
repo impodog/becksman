@@ -1,6 +1,5 @@
 use crate::prelude::*;
 use std::ops::{Deref, DerefMut};
-use std::sync::{Arc, Mutex};
 
 #[allow(unused_variables)]
 pub trait Panel: Send + Sync + std::fmt::Debug {
@@ -13,6 +12,10 @@ pub trait Panel: Send + Sync + std::fmt::Debug {
     }
     /// Called when rewound to the panel
     fn on_rewind_to(&mut self) -> Task<MainMessage> {
+        Task::none()
+    }
+    /// Called on start up
+    fn on_start_up(&mut self) -> Task<MainMessage> {
         Task::none()
     }
     fn view(&self) -> Element<MainMessage>;
@@ -44,6 +47,8 @@ impl DerefMut for PanelHandle {
 pub enum MainMessage {
     None,
     LoginMessage(login::LoginMessage),
+    LobbyMessage(lobby::LobbyMessage),
+    PosterMessage(poster_panel::PosterMessage),
     Login(Arc<Login>),
     Logout,
     Open(Acquire<PanelHandle>),

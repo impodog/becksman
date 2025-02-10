@@ -16,13 +16,14 @@ impl PosterInfo {
     /// Uploads a new poster to the server, returning the created poster info
     ///
     /// Only the value data is required, and compilation will be done at the server-side
-    pub async fn create(login: &Login, value: String) -> Result<Self> {
+    pub async fn create(login: &Login, value: String, images: Vec<String>) -> Result<Self> {
         let response = login
             .client()
             .post(server_url!("poster/create"))
             .json(&create::CreateRequest {
                 token: login.token(),
                 value,
+                images,
             })
             .send()
             .await?
@@ -68,21 +69,5 @@ impl PosterInfo {
     /// Un-loads the poster data, so that any further operation must be loaded again
     pub fn unload(&mut self) {
         self.data = None;
-    }
-
-    pub async fn modify(&mut self, login: &Login, value: String) -> Result<()> {
-        let _response = login
-            .client()
-            .post(server_url!("poster/modify"))
-            .json(&modify::ModifyRequest {
-                token: login.token(),
-                poster: self.id(),
-                value,
-            })
-            .send()
-            .await?
-            .error_for_status()?;
-        self.unload();
-        Ok(())
     }
 }

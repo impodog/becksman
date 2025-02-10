@@ -1,7 +1,6 @@
 use crate::prelude::*;
 use crate::*;
 use std::borrow::Cow;
-use std::sync::Arc;
 use widget::text;
 
 pub struct Main {
@@ -33,7 +32,9 @@ impl Main {
         match message {
             MainMessage::Login(login) => {
                 self.login = Some(login);
-                Task::none()
+                Task::done(MainMessage::Open(Acquire::new(PanelHandle::new(
+                    lobby::LobbyPanel::default(),
+                ))))
             }
             MainMessage::Logout => {
                 if let Some(login) = self.login.take() {
@@ -50,8 +51,10 @@ impl Main {
             MainMessage::Open(panel) => {
                 if let Some(panel) = panel.try_acquire() {
                     self.panels.push(panel);
+                    self.panels.last_mut().unwrap().on_start_up()
+                } else {
+                    Task::none()
                 }
-                Task::none()
             }
             MainMessage::Rewind => {
                 self.panels.pop();
@@ -115,7 +118,7 @@ pub fn run_app() {
             icon: Some(icon),
             ..Default::default()
         })
-        .theme(|_main| iced::Theme::SolarizedDark)
+        .theme(|_main| iced::Theme::Dracula)
         .scale_factor(|_main| 2.0)
         .settings(iced::Settings {
             fonts: fonts

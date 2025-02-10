@@ -1,6 +1,5 @@
 mod acquire;
 mod create;
-mod modify;
 mod query;
 
 use crate::prelude::*;
@@ -17,7 +16,6 @@ pub fn config_poster(cfg: &mut web::ServiceConfig) {
             .service(test)
             .service(create::create_poster)
             .service(acquire::acquire_poster)
-            .service(modify::modify_poster)
             .service(query::query_poster),
     );
 }

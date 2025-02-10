@@ -131,8 +131,7 @@ impl Login {
                     CREATE TABLE IF NOT EXISTS poster (
                         id INTEGER PRIMARY KEY,
                         value TEXT,
-                        compiled TEXT,
-                        modified BIT,
+                        images TEXT,
                         timestamp INTEGER
                     )
                 "},

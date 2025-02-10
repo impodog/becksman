@@ -15,4 +15,3 @@ num_enum = "0.7.3"
 rusqlite = "0.33.0"
 serde = { version = "1.0.217", features = ["derive"] }
 thiserror = "2.0.11"
-pulldown-cmark = "0.12.2"

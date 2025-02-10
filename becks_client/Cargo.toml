@@ -4,8 +4,11 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-iced = { version = "0.13.1", features = ["system", "tokio"] }
+iced = { version = "0.13.1", features = ["auto-detect-theme", "image", "system", "tokio"] }
 becks_network = { path = "becks_network" }
+becks_poster = { path = "../becks_server/becks_poster" }
+becks_crew = { path = "../becks_server/becks_crew" }
+becks_match = { path = "../becks_server/becks_match" }
 env_logger = "0.11.6"
 log = "0.4.25"
 tokio = { version = "1.43.0", features = ["full"] }

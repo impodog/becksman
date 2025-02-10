@@ -5,9 +5,10 @@ pub(crate) use anyhow::Result;
 pub(crate) use becks_network::*;
 pub(crate) use iced::{widget, window, Element, Task};
 pub(crate) use log::{debug, error, info, warn};
+pub(crate) use std::sync::Arc;
 
 use std::fmt::Debug;
-use std::sync::{Arc, Mutex};
+use std::sync::Mutex;
 
 /// A clonable single data handle where only the first acquisition returns an value
 #[derive(Debug)]
@@ -45,4 +46,11 @@ where
     pub fn acquire(self) -> T {
         self.try_acquire().expect("the data has been acquired")
     }
+}
+
+pub fn current_timestamp() -> u64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_secs()
 }
