@@ -1,9 +1,10 @@
 use crate::prelude::*;
+use becks_crew::*;
 
 #[derive(Debug)]
 pub struct CrewPanel {
     crew: Arc<crew::CrewList>,
-    loaded: Vec<becks_crew::CrewData>,
+    loaded: Vec<(Id, CrewData)>,
     is_loaded: bool,
 }
 
@@ -11,7 +12,7 @@ pub struct CrewPanel {
 pub enum CrewMessage {
     Reload,
     Load,
-    Loaded(Acquire<Vec<becks_crew::CrewData>>),
+    Loaded(Acquire<Vec<(Id, CrewData)>>),
 }
 
 impl CrewPanel {
@@ -34,8 +35,15 @@ impl Panel for CrewPanel {
                         async move {
                             let mut crew_list = Vec::new();
                             for crew in crew.iter() {
-                                crew_list
-                                    .push(crew.write().await.load(login.as_ref()).await.cloned())
+                                let id = crew.read().await.id();
+                                crew_list.push(
+                                    crew.write()
+                                        .await
+                                        .load(login.as_ref())
+                                        .await
+                                        .cloned()
+                                        .map(|data| (id, data)),
+                                )
                             }
                             crew_list
                         },
@@ -81,11 +89,11 @@ impl Panel for CrewPanel {
                 widget::text(assets::TEXT.get("crew_empty")).into()
             } else {
                 let mut column: Vec<Element<MainMessage>> = Vec::new();
-                for crew in self.loaded.iter() {
-                    column.push(view_crew(crew));
-                    column.push(widget::Rule::horizontal(25).into());
+                for (id, crew) in self.loaded.iter() {
+                    column.push(view_crew(*id, crew));
+                    column.push(widget::Rule::horizontal(1).into());
                 }
-                widget::scrollable(widget::Column::from_iter(column)).into()
+                widget::Column::from_iter(column).into()
             }
         } else {
             widget::text(assets::TEXT.get("crew_loading"))
@@ -98,11 +106,21 @@ impl Panel for CrewPanel {
         ]
         .into()
     }
+    fn on_rewind_to(&mut self) -> Task<MainMessage> {
+        Task::done(MainMessage::CrewMessage(CrewMessage::Reload))
+    }
 }
 
-fn view_crew(crew: &becks_crew::CrewData) -> Element<MainMessage> {
+fn view_crew(id: Id, crew: &CrewData) -> Element<MainMessage> {
     widget::container(widget::row![
-        widget::text(&crew.name).align_y(iced::Alignment::Center) // TODO: Show more information
+        widget::text(&crew.name).align_y(iced::Alignment::Center),
+        widget::horizontal_space(),
+        widget::button(widget::image("assets/jump.png"))
+            .height(30)
+            .width(30)
+            .on_press(MainMessage::Open(Acquire::new(PanelHandle::new(
+                crew_info::CrewInfoPanel::new(id)
+            )))),
     ])
     .style(widget::container::rounded_box)
     .into()

@@ -36,6 +36,13 @@ impl Main {
                     lobby::LobbyPanel::default(),
                 ))))
             }
+            MainMessage::UpdateLogin => {
+                if let Some(login) = self.login.clone() {
+                    Task::perform(async move { login.update().await }, |_| MainMessage::None)
+                } else {
+                    Task::none()
+                }
+            }
             MainMessage::Logout => {
                 if let Some(login) = self.login.take() {
                     Task::perform(async move { login.log_out().await }, |result| {
@@ -64,6 +71,10 @@ impl Main {
                     Task::none()
                 }
             }
+            MainMessage::RewindThen(panel) => {
+                self.panels.pop();
+                Task::done(MainMessage::Open(panel))
+            }
             MainMessage::None => Task::none(),
             _ => {
                 if let Some(handle) = self.panels.last_mut() {
@@ -87,15 +98,21 @@ impl Main {
                 .push_maybe(if self.panels.len() <= 1 {
                     None
                 } else {
-                    Some(
-                        widget::button(widget::image("assets/back.png").width(20).height(20))
-                            .on_press(MainMessage::Rewind),
-                    )
+                    let image = if self.panels.last().unwrap().is_done_able() {
+                        widget::image("assets/done.png")
+                    } else {
+                        widget::image("assets/back.png")
+                    };
+                    Some(widget::button(image.width(20).height(20)).on_press(MainMessage::Rewind))
                 })
                 .into()
         } else {
             text("Please wait...").center().size(50).into()
         }
+    }
+
+    fn subscription_update_login(&self) -> iced::Subscription<MainMessage> {
+        iced::time::every(config::CONFIG.request.update_relay).map(|_| MainMessage::UpdateLogin)
     }
 }
 
@@ -124,6 +141,7 @@ pub fn run_app() {
     let fonts = Box::leak(Box::new(fonts));
 
     iced::application(assets::TEXT.get("title"), Main::update, Main::view)
+        .subscription(Main::subscription_update_login)
         .centered()
         .window(window::Settings {
             icon: Some(icon),

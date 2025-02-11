@@ -18,6 +18,10 @@ pub trait Panel: Send + Sync + std::fmt::Debug {
     fn on_start_up(&mut self) -> Task<MainMessage> {
         Task::none()
     }
+    /// Returns whether the page uses a "done" symbol instead of a "return" one
+    fn is_done_able(&self) -> bool {
+        false
+    }
     fn view(&self) -> Element<MainMessage>;
 }
 
@@ -50,9 +54,13 @@ pub enum MainMessage {
     LobbyMessage(lobby::LobbyMessage),
     PosterMessage(poster_panel::PosterMessage),
     CrewMessage(crew_panel::CrewMessage),
-    QueryCrewMessage(crew_query::QueryCrewMessage),
+    CrewQueryMessage(crew_query::CrewQueryMessage),
+    CrewInfoMessage(crew_info::CrewInfoMessage),
+    CrewCreateMessage(crew_create::CrewCreateMessage),
     Login(Arc<Login>),
+    UpdateLogin,
     Logout,
     Open(Acquire<PanelHandle>),
     Rewind,
+    RewindThen(Acquire<PanelHandle>),
 }

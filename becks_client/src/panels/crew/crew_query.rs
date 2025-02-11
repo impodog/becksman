@@ -3,7 +3,7 @@ use becks_crew::*;
 use std::sync::Mutex;
 
 #[derive(Debug, Default)]
-pub struct QueryCrewPanel {
+pub struct CrewQueryPanel {
     by: Vec<CrewLocation>,
     crew: Option<crew_panel::CrewPanel>,
     selected: Vec<Id>,
@@ -11,7 +11,7 @@ pub struct QueryCrewPanel {
 }
 
 #[derive(Debug, Clone)]
-pub enum QueryCrewMessage {
+pub enum CrewQueryMessage {
     Add(CrewLocation),
     Update(usize, CrewLocation),
     Remove(usize),
@@ -41,51 +41,51 @@ impl ToString for AddChoice {
     }
 }
 
-impl Panel for QueryCrewPanel {
+impl Panel for CrewQueryPanel {
     fn update_with_login(&mut self, login: Arc<Login>, message: MainMessage) -> Task<MainMessage> {
+        self.error = false;
         match message {
-            MainMessage::QueryCrewMessage(message) => match message {
-                QueryCrewMessage::Add(loc) => {
+            MainMessage::CrewQueryMessage(message) => match message {
+                CrewQueryMessage::Add(loc) => {
                     self.by.push(loc);
                     Task::none()
                 }
-                QueryCrewMessage::Update(index, loc) => {
+                CrewQueryMessage::Update(index, loc) => {
                     if let Some(loc_ref) = self.by.get_mut(index) {
                         *loc_ref = loc;
                     }
                     Task::none()
                 }
-                QueryCrewMessage::Remove(index) => {
+                CrewQueryMessage::Remove(index) => {
                     if index < self.by.len() {
                         self.by.remove(index);
                     }
                     Task::none()
                 }
-                QueryCrewMessage::StartQuery => {
+                CrewQueryMessage::StartQuery => {
                     let by = self.by.clone();
                     Task::perform(
                         async move { crew::CrewList::query(login.as_ref(), by).await },
                         |result| match result {
-                            Ok(value) => MainMessage::QueryCrewMessage(
-                                QueryCrewMessage::QueryDone(Acquire::new(value)),
+                            Ok(value) => MainMessage::CrewQueryMessage(
+                                CrewQueryMessage::QueryDone(Acquire::new(value)),
                             ),
                             Err(err) => {
                                 error!("When querying for crews, {}", err);
-                                MainMessage::QueryCrewMessage(QueryCrewMessage::QueryErr)
+                                MainMessage::CrewQueryMessage(CrewQueryMessage::QueryErr)
                             }
                         },
                     )
                 }
-                QueryCrewMessage::QueryDone(list) => {
+                CrewQueryMessage::QueryDone(list) => {
                     if let Some(list) = list.try_acquire() {
                         self.crew = Some(crew_panel::CrewPanel::new(list));
-                        self.error = false;
                         Task::done(MainMessage::CrewMessage(crew_panel::CrewMessage::Load))
                     } else {
                         Task::none()
                     }
                 }
-                QueryCrewMessage::QueryErr => {
+                CrewQueryMessage::QueryErr => {
                     self.error = true;
                     Task::none()
                 }
@@ -108,25 +108,48 @@ impl Panel for QueryCrewPanel {
             widget::text(assets::TEXT.get("crew_query_title")).align_x(iced::Alignment::Center),
             widget::row![
                 self.pick_add(),
-                widget::button(assets::TEXT.get("crew_query_start"))
-                    .style(widget::button::primary)
-                    .on_press(MainMessage::QueryCrewMessage(QueryCrewMessage::StartQuery))
+                widget::button(if self.by.is_empty() {
+                    assets::TEXT.get("crew_query_acquire")
+                } else {
+                    assets::TEXT.get("crew_query_start")
+                })
+                .style(widget::button::primary)
+                .on_press(MainMessage::CrewQueryMessage(CrewQueryMessage::StartQuery))
             ],
             widget::horizontal_rule(2),
             widget::Column::from_iter(column),
             widget::horizontal_rule(2),
         ]
-        .push_maybe(self.crew.as_ref().map(|crew| crew.view()))
+        .push_maybe(self.crew.as_ref().map(|crew| {
+            widget::scrollable(crew.view())
+                .direction(widget::scrollable::Direction::Vertical(
+                    widget::scrollable::Scrollbar::new(),
+                ))
+                .height(180)
+        }))
         .push_maybe(if self.error {
             Some(widget::text(assets::TEXT.get("crew_query_error")).style(widget::text::danger))
         } else {
             None
         })
+        .spacing(10)
+        .extend([
+            widget::horizontal_rule(4).into(),
+            widget::button(assets::TEXT.get("crew_query_create"))
+                .on_press(MainMessage::Open(Acquire::new(PanelHandle::new(
+                    crew_create::CrewCreatePanel::default(),
+                ))))
+                .into(),
+        ])
         .into()
+    }
+    fn on_rewind_to(&mut self) -> Task<MainMessage> {
+        self.crew = None;
+        Task::none()
     }
 }
 
-impl QueryCrewPanel {
+impl CrewQueryPanel {
     fn pick_add(&self) -> Element<MainMessage> {
         widget::pick_list(
             [
@@ -137,7 +160,7 @@ impl QueryCrewPanel {
             ],
             Option::<&AddChoice>::None,
             |choice| {
-                MainMessage::QueryCrewMessage(QueryCrewMessage::Add(match choice {
+                MainMessage::CrewQueryMessage(CrewQueryMessage::Add(match choice {
                     AddChoice::Name => CrewLocation::Name(Default::default()),
                     AddChoice::Score => CrewLocation::Score(Score(i32::MIN)),
                     AddChoice::Gender => CrewLocation::Gender(Default::default()),
@@ -157,7 +180,7 @@ fn view_location(index: usize, loc: &CrewLocation) -> Element<MainMessage> {
             widget::text(assets::TEXT.get("crew_query_name")).into(),
             widget::text_input(assets::TEXT.get("crew_query_name_hint"), name)
                 .on_input(move |value| {
-                    MainMessage::QueryCrewMessage(QueryCrewMessage::Update(
+                    MainMessage::CrewQueryMessage(CrewQueryMessage::Update(
                         index,
                         CrewLocation::Name(value),
                     ))
@@ -168,7 +191,7 @@ fn view_location(index: usize, loc: &CrewLocation) -> Element<MainMessage> {
             widget::text(assets::TEXT.get("crew_query_gender")).into(),
             widget::pick_list(Gender::all_repred(), Some(gender.repr()), move |gender| {
                 let gender = Gender::unrepr(gender);
-                MainMessage::QueryCrewMessage(QueryCrewMessage::Update(index, Loc::Gender(*gender)))
+                MainMessage::CrewQueryMessage(CrewQueryMessage::Update(index, Loc::Gender(*gender)))
             })
             .into(),
         ]),
@@ -184,12 +207,12 @@ fn view_location(index: usize, loc: &CrewLocation) -> Element<MainMessage> {
             )
             .on_input(move |value| {
                 if value.is_empty() {
-                    MainMessage::QueryCrewMessage(QueryCrewMessage::Update(
+                    MainMessage::CrewQueryMessage(CrewQueryMessage::Update(
                         index,
                         CrewLocation::Score(Score(i32::MIN)),
                     ))
                 } else if let Ok(value) = value.parse() {
-                    MainMessage::QueryCrewMessage(QueryCrewMessage::Update(
+                    MainMessage::CrewQueryMessage(CrewQueryMessage::Update(
                         index,
                         CrewLocation::Score(Score(value)),
                     ))
@@ -204,7 +227,7 @@ fn view_location(index: usize, loc: &CrewLocation) -> Element<MainMessage> {
             widget::text(assets::TEXT.get("crew_query_social")).into(),
             widget::pick_list(Social::all_repred(), Some(social.repr()), move |social| {
                 let social = Social::unrepr(social);
-                MainMessage::QueryCrewMessage(QueryCrewMessage::Update(index, Loc::Social(*social)))
+                MainMessage::CrewQueryMessage(CrewQueryMessage::Update(index, Loc::Social(*social)))
             })
             .into(),
         ]),
@@ -219,7 +242,7 @@ fn view_location(index: usize, loc: &CrewLocation) -> Element<MainMessage> {
     };
     row.push(
         widget::button(widget::image("assets/remove.png").content_fit(iced::ContentFit::ScaleDown))
-            .on_press(MainMessage::QueryCrewMessage(QueryCrewMessage::Remove(
+            .on_press(MainMessage::CrewQueryMessage(CrewQueryMessage::Remove(
                 index,
             )))
             .into(),

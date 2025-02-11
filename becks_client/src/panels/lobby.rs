@@ -19,6 +19,7 @@ impl Panel for LobbyPanel {
         Task::done(MainMessage::Rewind)
     }
     fn update_with_login(&mut self, login: Arc<Login>, message: MainMessage) -> Task<MainMessage> {
+        self.error = None;
         match message {
             MainMessage::LobbyMessage(message) => match message {
                 LobbyMessage::LoadRecentPoster => Task::perform(
@@ -47,7 +48,6 @@ impl Panel for LobbyPanel {
                 LobbyMessage::LoadedRecentPoster(poster) => {
                     if let Some(poster) = poster.try_acquire() {
                         self.poster = poster_panel::PosterPanel::new(poster);
-                        self.error = None;
                         Task::done(MainMessage::PosterMessage(
                             poster_panel::PosterMessage::Reload,
                         ))
@@ -69,7 +69,7 @@ impl Panel for LobbyPanel {
             widget::button(assets::TEXT.get("lobby_crew"))
                 .style(widget::button::text)
                 .on_press(MainMessage::Open(Acquire::new(PanelHandle::new(
-                    crew_query::QueryCrewPanel::default()
+                    crew_query::CrewQueryPanel::default()
                 )))),
             widget::container(self.poster.view()).style(widget::container::rounded_box),
         ]
