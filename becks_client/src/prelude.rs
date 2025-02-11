@@ -1,6 +1,7 @@
 pub(crate) use crate::assets;
 pub(crate) use crate::panel::*;
 pub(crate) use crate::panels::*;
+pub(crate) use crate::repr::*;
 pub(crate) use anyhow::Result;
 pub(crate) use becks_network::*;
 pub(crate) use iced::{widget, window, Element, Task};
@@ -12,7 +13,7 @@ use std::sync::Mutex;
 
 /// A clonable single data handle where only the first acquisition returns an value
 #[derive(Debug)]
-pub struct Acquire<T>(pub Arc<Mutex<Option<T>>>)
+pub struct Acquire<T>(Arc<Mutex<Option<T>>>)
 where
     T: Debug;
 
@@ -39,7 +40,9 @@ where
 
     /// Acquires the data, returns [`Some`] if this is not previously acquired
     pub fn try_acquire(self) -> Option<T> {
-        self.0.lock().unwrap().take()
+        // Here try_lock is used, because if another thread is acquiring the lock, acquisition
+        // will not succeed anyway
+        self.0.try_lock().ok().and_then(|mut lock| lock.take())
     }
 
     /// Acquires the data, panics if the data has been acquired

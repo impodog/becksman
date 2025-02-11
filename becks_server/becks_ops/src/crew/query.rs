@@ -64,6 +64,7 @@ macro_rules! extend_query_sql {
     ($type: ty, $sql: ident, $params: ident, $index: expr, $value: expr) => {{
         $sql.push_str(&format!("{} = ?{}", <$type>::name(), $index));
         $params.push(box_sql($value.convert()));
+        $index += 1;
     }};
 }
 
@@ -79,33 +80,46 @@ impl Query for QueryBy {
         if !self.by.is_empty() {
             sql.push_str(" WHERE ");
         }
+        let mut fuzzy_score: Option<Score> = None;
+        let mut pos: usize = 1;
         for (index, loc) in self.by.into_iter().enumerate() {
-            let index = index + 1;
+            if index != 0 && !matches!(loc, Loc::Score(_)) {
+                sql.push_str(" AND ");
+            }
             match loc {
                 Loc::Name(name) => {
                     let name = if self.fuzzy {
-                        sql.push_str(&format!("{} GLOB ?{}", String::name(), index));
+                        sql.push_str(&format!("{} GLOB ?{}", String::name(), pos));
                         format!("{}*", name)
                     } else {
-                        sql.push_str(&format!("{} = ?{}", String::name(), index));
+                        sql.push_str(&format!("{} = ?{}", String::name(), pos));
                         name.convert()
                     };
+                    pos += 1;
                     params.push(box_sql(name));
                 }
-                Loc::Social(social) => extend_query_sql!(Social, sql, params, index, social),
-                Loc::Score(score) => extend_query_sql!(Score, sql, params, index, score),
-                Loc::Gender(gender) => extend_query_sql!(Gender, sql, params, index, gender),
-                Loc::Clothes(clothes) => extend_query_sql!(Clothes, sql, params, index, clothes),
-                Loc::Hand(hand) => extend_query_sql!(Hand, sql, params, index, hand),
-                Loc::Hold(hold) => extend_query_sql!(Hold, sql, params, index, hold),
-                Loc::Paddle(paddle) => extend_query_sql!(Paddle, sql, params, index, paddle),
-                Loc::Red(red) => extend_query_sql!(RedRubber, sql, params, index, red),
-                Loc::Black(black) => extend_query_sql!(BlackRubber, sql, params, index, black),
+                Loc::Social(social) => extend_query_sql!(Social, sql, params, pos, social),
+                Loc::Score(score) => {
+                    if self.fuzzy {
+                        fuzzy_score = Some(score);
+                    } else {
+                        extend_query_sql!(Score, sql, params, pos, score)
+                    }
+                }
+                Loc::Gender(gender) => extend_query_sql!(Gender, sql, params, pos, gender),
+                Loc::Clothes(clothes) => extend_query_sql!(Clothes, sql, params, pos, clothes),
+                Loc::Hand(hand) => extend_query_sql!(Hand, sql, params, pos, hand),
+                Loc::Hold(hold) => extend_query_sql!(Hold, sql, params, pos, hold),
+                Loc::Paddle(paddle) => extend_query_sql!(Paddle, sql, params, pos, paddle),
+                Loc::Red(red) => extend_query_sql!(RedRubber, sql, params, pos, red),
+                Loc::Black(black) => extend_query_sql!(BlackRubber, sql, params, pos, black),
             }
-            // index is increased by 1 earlier
-            if index != len {
-                sql.push_str(" AND ");
-            }
+        }
+        #[allow(unused_assignments)]
+        if let Some(score) = fuzzy_score {
+            sql.push_str(&format!(" ORDER BY ABS({} - ?{})", Score::name(), pos));
+            params.push(box_sql(score.convert()));
+            pos += 1;
         }
         let params_ref = params
             .iter()

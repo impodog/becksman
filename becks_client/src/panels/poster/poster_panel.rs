@@ -92,9 +92,9 @@ impl Panel for PosterPanel {
                 let mut column: Vec<Element<MainMessage>> = Vec::new();
                 for poster in self.loaded.iter() {
                     column.push(view_poster(poster));
-                    column.push(widget::Rule::horizontal(10).into());
+                    column.push(widget::Rule::horizontal(25).into());
                 }
-                widget::scrollable(widget::Column::from_vec(column)).into()
+                widget::scrollable(widget::Column::from_iter(column)).into()
             }
         } else {
             widget::text(assets::TEXT.get("poster_loading"))
@@ -122,14 +122,14 @@ fn view_poster(poster: &becks_poster::Poster) -> Element<MainMessage> {
         );
         if count == 3 {
             count = 0;
-            rows.push(widget::Row::from_vec(std::mem::take(&mut current)).into());
+            rows.push(widget::Row::from_iter(std::mem::take(&mut current)).into());
         }
     }
     widget::column![
         widget::text(&poster.value)
             .style(widget::text::base)
             .color(iced::Color::from_rgb8(255, 255, 255)),
-        widget::Column::from_vec(rows)
+        widget::Column::from_iter(rows)
     ]
     .into()
 }

@@ -81,9 +81,20 @@ impl Main {
 
     fn view(&self) -> Element<MainMessage> {
         if let Some(handle) = self.panels.last() {
-            handle.view()
+            widget::column![]
+                .push(handle.view())
+                .push(widget::vertical_space())
+                .push_maybe(if self.panels.len() <= 1 {
+                    None
+                } else {
+                    Some(
+                        widget::button(widget::image("assets/back.png").width(20).height(20))
+                            .on_press(MainMessage::Rewind),
+                    )
+                })
+                .into()
         } else {
-            text("Please wait...").center().size(100).into()
+            text("Please wait...").center().size(50).into()
         }
     }
 }

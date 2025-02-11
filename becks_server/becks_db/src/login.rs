@@ -65,6 +65,7 @@ impl Login {
             db.execute(
                 indoc! {"
                     CREATE INDEX idx_name ON crew (name);
+                    CREATE INDEX idx_social ON crew (social);
                     CREATE INDEX idx_score ON crew (score)
                 "},
                 [],

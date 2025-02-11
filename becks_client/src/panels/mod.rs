@@ -1,4 +1,7 @@
-pub mod crew;
+mod crew;
 pub mod lobby;
 pub mod login;
-pub mod poster_panel;
+mod poster;
+
+pub use crew::*;
+pub use poster::*;

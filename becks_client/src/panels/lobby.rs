@@ -65,7 +65,15 @@ impl Panel for LobbyPanel {
     }
     fn view(&self) -> Element<MainMessage> {
         // TODO: Lobby Elements
-        widget::column![self.poster.view(),].into()
+        widget::column![
+            widget::button(assets::TEXT.get("lobby_crew"))
+                .style(widget::button::text)
+                .on_press(MainMessage::Open(Acquire::new(PanelHandle::new(
+                    crew_query::QueryCrewPanel::default()
+                )))),
+            widget::container(self.poster.view()).style(widget::container::rounded_box),
+        ]
+        .into()
     }
     fn on_start_up(&mut self) -> Task<MainMessage> {
         Task::done(MainMessage::LobbyMessage(LobbyMessage::LoadRecentPoster))

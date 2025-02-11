@@ -49,6 +49,8 @@ pub enum MainMessage {
     LoginMessage(login::LoginMessage),
     LobbyMessage(lobby::LobbyMessage),
     PosterMessage(poster_panel::PosterMessage),
+    CrewMessage(crew_panel::CrewMessage),
+    QueryCrewMessage(crew_query::QueryCrewMessage),
     Login(Arc<Login>),
     Logout,
     Open(Acquire<PanelHandle>),

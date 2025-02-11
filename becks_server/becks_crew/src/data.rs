@@ -59,7 +59,7 @@ pub struct CrewData {
     pub black: Option<BlackRubber>,
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum CrewLocation {
     Name(String),
     Social(Social),
