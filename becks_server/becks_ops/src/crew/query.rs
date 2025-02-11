@@ -68,29 +68,32 @@ macro_rules! extend_query_sql {
     }};
 }
 
+fn no_produce_condition(loc: &CrewLocation) -> bool {
+    matches!(loc, CrewLocation::Score(_))
+}
+
 impl Query for QueryBy {
     fn query(self, login: &Login) -> Vec<Id> {
         use crate::crew::Column;
         use CrewLocation as Loc;
-        let len = self.by.len();
         let mut sql = String::from("SELECT id FROM crew");
         let mut params = Vec::new();
 
         // special: if the query is empty, there is no WHERE
-        if !self.by.is_empty() {
+        if !self.by.is_empty() && (!self.fuzzy || !self.by.iter().all(no_produce_condition)) {
             sql.push_str(" WHERE ");
         }
         let mut fuzzy_score: Option<Score> = None;
         let mut pos: usize = 1;
-        for (index, loc) in self.by.into_iter().enumerate() {
-            if index != 0 && !matches!(loc, Loc::Score(_)) {
+        for loc in self.by.into_iter() {
+            if pos != 1 && !no_produce_condition(&loc) {
                 sql.push_str(" AND ");
             }
             match loc {
                 Loc::Name(name) => {
                     let name = if self.fuzzy {
                         sql.push_str(&format!("{} GLOB ?{}", String::name(), pos));
-                        format!("{}*", name)
+                        format!("*{}*", name)
                     } else {
                         sql.push_str(&format!("{} = ?{}", String::name(), pos));
                         name.convert()

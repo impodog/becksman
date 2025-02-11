@@ -108,6 +108,7 @@ impl Panel for CrewCreatePanel {
             None
         })
         .spacing(10)
+        .padding(20)
         .into()
     }
 }

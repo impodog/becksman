@@ -104,6 +104,7 @@ impl Panel for CrewPanel {
             widget::text(assets::TEXT.get("crew_title")).style(widget::text::primary),
             crew_view
         ]
+        .padding(10)
         .into()
     }
     fn on_rewind_to(&mut self) -> Task<MainMessage> {

@@ -170,8 +170,6 @@ impl Column for Paddle {
         "paddle"
     }
     fn convert(self) -> Self::Target {
-        check!(alnum self.brand);
-        check!(alnum self.kind);
         format!("{}/{}", self.brand, self.kind)
     }
     fn acquire(value: Self::Target) -> Self {
@@ -194,8 +192,6 @@ impl Column for RedRubber {
         "red_rubber"
     }
     fn convert(self) -> Self::Target {
-        check!(alnum self.0.brand);
-        check!(alnum self.0.kind);
         format!("{}/{}", self.0.brand, self.0.kind)
     }
     fn acquire(value: Self::Target) -> Self {
@@ -218,8 +214,6 @@ impl Column for BlackRubber {
         "black_rubber"
     }
     fn convert(self) -> Self::Target {
-        check!(alnum self.0.brand);
-        check!(alnum self.0.kind);
         format!("{}/{}", self.0.brand, self.0.kind)
     }
     fn acquire(value: Self::Target) -> Self {

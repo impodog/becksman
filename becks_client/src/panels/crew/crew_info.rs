@@ -1,5 +1,6 @@
-use crate::{entry::Main, prelude::*};
+use crate::prelude::*;
 use becks_crew::*;
+use crew_repr::Brand;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
@@ -8,6 +9,7 @@ pub struct CrewInfoPanel {
     crew: Arc<Mutex<crew::CrewInfo>>,
     crew_data: Option<CrewData>,
     error: bool,
+    delete_confirm: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -16,6 +18,8 @@ pub enum CrewInfoMessage {
     Loaded(Acquire<CrewData>),
     LoadError,
     Update(CrewLocation),
+    DeleteConfirm,
+    Delete,
 }
 
 impl CrewInfoPanel {
@@ -24,8 +28,63 @@ impl CrewInfoPanel {
             crew: Arc::new(Mutex::new(crew::CrewInfo::new(id))),
             crew_data: None,
             error: false,
+            delete_confirm: false,
         }
     }
+}
+
+macro_rules! view_kv {
+    ($data: ident, $view_key: literal, $hint_key: literal, $construct: expr, $acquire: expr, $loc: ident, $data_field: ident) => {{
+        let construct = $construct;
+        let acquire = $acquire;
+        view_data(
+            $view_key,
+            widget::row![
+                widget::pick_list(
+                    Brand::all_repred(),
+                    $data
+                        .$data_field
+                        .as_ref()
+                        .map(|paddle| Brand::from_server(&acquire(paddle).brand).repr()),
+                    move |brand| {
+                        let brand = Brand::unrepr(brand);
+                        MainMessage::CrewInfoMessage(CrewInfoMessage::Update(CrewLocation::$loc(
+                            construct(
+                                brand.to_server(),
+                                $data
+                                    .$data_field
+                                    .as_ref()
+                                    .map_or_else(Default::default, |paddle| {
+                                        acquire(paddle).kind.clone()
+                                    }),
+                            ),
+                        )))
+                    }
+                )
+                .width(100),
+                widget::text_input(
+                    assets::TEXT.get($hint_key),
+                    $data
+                        .$data_field
+                        .as_ref()
+                        .map_or("", |paddle| acquire(paddle).kind.as_ref())
+                )
+                .on_input(move |value| {
+                    MainMessage::CrewInfoMessage(CrewInfoMessage::Update(CrewLocation::$loc(
+                        construct(
+                            $data
+                                .$data_field
+                                .as_ref()
+                                .map_or_else(Default::default, |paddle| {
+                                    acquire(paddle).brand.clone()
+                                }),
+                            value,
+                        ),
+                    )))
+                })
+            ],
+        )
+    }};
 }
 
 impl Panel for CrewInfoPanel {
@@ -70,6 +129,23 @@ impl Panel for CrewInfoPanel {
                     self.error = true;
                     Task::none()
                 }
+                CrewInfoMessage::DeleteConfirm => {
+                    self.delete_confirm = true;
+                    Task::none()
+                }
+                CrewInfoMessage::Delete => {
+                    let crew = self.crew.clone();
+                    Task::perform(
+                        async move { crew.lock().await.delete(login.as_ref()).await },
+                        |result| match result {
+                            Ok(_) => MainMessage::Rewind,
+                            Err(err) => {
+                                warn!("When deleting crew, {}", err);
+                                MainMessage::CrewInfoMessage(CrewInfoMessage::LoadError)
+                            }
+                        },
+                    )
+                }
             },
             _ => {
                 todo!()
@@ -100,6 +176,109 @@ impl Panel for CrewInfoPanel {
                     )))
                 }),
             ));
+            column.push(view_data(
+                "crew_info_gender",
+                widget::pick_list(
+                    Gender::all_repred(),
+                    data.gender.as_ref().map(Repr::repr),
+                    |gender| {
+                        let gender = Gender::unrepr(gender);
+                        MainMessage::CrewInfoMessage(CrewInfoMessage::Update(CrewLocation::Gender(
+                            *gender,
+                        )))
+                    },
+                ),
+            ));
+            column.push(view_data(
+                "crew_info_score",
+                widget::text(data.score.0.to_string()).style(widget::text::success),
+            ));
+            column.push(view_data(
+                "crew_info_hold",
+                widget::pick_list(
+                    Hold::all_repred(),
+                    data.hold.as_ref().map(Repr::repr),
+                    |hold| {
+                        let hold = Hold::unrepr(hold);
+                        MainMessage::CrewInfoMessage(CrewInfoMessage::Update(CrewLocation::Hold(
+                            *hold,
+                        )))
+                    },
+                ),
+            ));
+            column.push(view_data(
+                "crew_info_hand",
+                widget::pick_list(
+                    Hand::all_repred(),
+                    data.hand.as_ref().map(Repr::repr),
+                    |hand| {
+                        let hand = Hand::unrepr(hand);
+                        MainMessage::CrewInfoMessage(CrewInfoMessage::Update(CrewLocation::Hand(
+                            *hand,
+                        )))
+                    },
+                ),
+            ));
+            fn construct_paddle(brand: String, kind: String) -> Paddle {
+                Paddle { brand, kind }
+            }
+            fn acquire_paddle(paddle: &Paddle) -> &Paddle {
+                paddle
+            }
+            column.push(view_kv!(
+                data,
+                "crew_info_paddle",
+                "crew_info_paddle_kind_hint",
+                construct_paddle,
+                acquire_paddle,
+                Paddle,
+                paddle
+            ));
+            fn construct_red(brand: String, kind: String) -> RedRubber {
+                RedRubber(Rubber { brand, kind })
+            }
+            fn acquire_red(red: &RedRubber) -> &Rubber {
+                &red.0
+            }
+            column.push(view_kv!(
+                data,
+                "crew_info_red",
+                "crew_info_red_kind_hint",
+                construct_red,
+                acquire_red,
+                Red,
+                red
+            ));
+            fn construct_black(brand: String, kind: String) -> BlackRubber {
+                BlackRubber(Rubber { brand, kind })
+            }
+            fn acquire_black(black: &BlackRubber) -> &Rubber {
+                &black.0
+            }
+            column.push(view_kv!(
+                data,
+                "crew_info_black",
+                "crew_info_black_kind_hint",
+                construct_black,
+                acquire_black,
+                Black,
+                black
+            ));
+
+            column.push(
+                widget::button(if self.delete_confirm {
+                    assets::TEXT.get("crew_info_delete_confirm")
+                } else {
+                    assets::TEXT.get("crew_info_delete")
+                })
+                .style(widget::button::danger)
+                .on_press(if self.delete_confirm {
+                    MainMessage::CrewInfoMessage(CrewInfoMessage::Delete)
+                } else {
+                    MainMessage::CrewInfoMessage(CrewInfoMessage::DeleteConfirm)
+                })
+                .into(),
+            )
         } else {
             column.push(widget::text(assets::TEXT.get("crew_loading")).into());
         }
@@ -111,7 +290,12 @@ impl Panel for CrewInfoPanel {
                     .into(),
             );
         }
-        widget::Column::from_iter(column).spacing(10).into()
+        widget::scrollable(widget::Column::from_iter(column).spacing(10).padding(20))
+            .direction(widget::scrollable::Direction::Vertical(
+                widget::scrollable::Scrollbar::new(),
+            ))
+            .height(300)
+            .into()
     }
 
     fn on_start_up(&mut self) -> Task<MainMessage> {

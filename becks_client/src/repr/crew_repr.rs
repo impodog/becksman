@@ -100,7 +100,14 @@ impl Repr for Brand {
     }
 
     fn all() -> &'static [Self] {
-        &[Self::DHS, Self::Butterfly, Self::Stiga]
+        &[
+            Self::DHS,
+            Self::YH,
+            Self::Butterfly,
+            Self::Stiga,
+            Self::XIOM,
+            Self::YOOLA,
+        ]
     }
 }
 

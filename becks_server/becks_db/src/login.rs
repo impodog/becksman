@@ -44,16 +44,16 @@ impl Login {
                 indoc! {
                     "CREATE TABLE IF NOT EXISTS crew (
                     id INTEGER PRIMARY KEY,
-                    name VARCHAR(20),
+                    name TEXT,
                     social BIT,
                     score INT,
                     gender BIT,
                     clothes TINYINT,
                     hand BIT,
                     hold BIT,
-                    paddle VARCHAR(40),
-                    red_rubber VARCHAR(40),
-                    black_rubber VARCHAR(40)
+                    paddle TEXT,
+                    red_rubber TEXT,
+                    black_rubber TEXT
                 )"
                 },
                 [],

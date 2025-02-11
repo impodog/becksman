@@ -33,8 +33,8 @@ impl CrewInfo {
         })
     }
 
-    /// Deletes the crew and consumes the crew info
-    pub async fn delete(self, login: &Login) -> Result<()> {
+    /// Deletes the crew, invalidating the crew info
+    pub async fn delete(&mut self, login: &Login) -> Result<()> {
         let _response = login
             .client()
             .post(server_url!("crew/delete"))
@@ -45,6 +45,7 @@ impl CrewInfo {
             .send()
             .await?
             .error_for_status()?;
+        self.data = None;
         Ok(())
     }
 

@@ -26,6 +26,8 @@ enum AddChoice {
     Gender,
     Social,
     Score,
+    /// Dummy choice for a hint
+    Select,
 }
 
 #[allow(clippy::to_string_trait_impl)]
@@ -36,6 +38,7 @@ impl ToString for AddChoice {
             Self::Gender => assets::TEXT.get("crew_query_gender"),
             Self::Social => assets::TEXT.get("crew_query_social"),
             Self::Score => assets::TEXT.get("crew_query_score"),
+            Self::Select => assets::TEXT.get("crew_query_select"),
         }
         .to_owned()
     }
@@ -125,7 +128,7 @@ impl Panel for CrewQueryPanel {
                 .direction(widget::scrollable::Direction::Vertical(
                     widget::scrollable::Scrollbar::new(),
                 ))
-                .height(180)
+                .height(150)
         }))
         .push_maybe(if self.error {
             Some(widget::text(assets::TEXT.get("crew_query_error")).style(widget::text::danger))
@@ -158,16 +161,18 @@ impl CrewQueryPanel {
                 AddChoice::Social,
                 AddChoice::Gender,
             ],
-            Option::<&AddChoice>::None,
+            Option::<&AddChoice>::Some(&AddChoice::Select),
             |choice| {
                 MainMessage::CrewQueryMessage(CrewQueryMessage::Add(match choice {
                     AddChoice::Name => CrewLocation::Name(Default::default()),
                     AddChoice::Score => CrewLocation::Score(Score(i32::MIN)),
                     AddChoice::Gender => CrewLocation::Gender(Default::default()),
                     AddChoice::Social => CrewLocation::Social(Default::default()),
+                    AddChoice::Select => CrewLocation::Name("You win!".to_owned()),
                 }))
             },
         )
+        .width(100)
         .into()
     }
 }
