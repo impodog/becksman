@@ -5,11 +5,15 @@ use std::sync::{LazyLock, RwLock};
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Interact {
     pub recent: std::time::Duration,
+    pub poster_text_len: usize,
+    pub poster_image_len: usize,
 }
 impl Default for Interact {
     fn default() -> Self {
         Self {
             recent: std::time::Duration::new(604800, 0),
+            poster_text_len: 100,
+            poster_image_len: 1,
         }
     }
 }

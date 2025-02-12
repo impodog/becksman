@@ -67,8 +67,7 @@ impl Panel for CrewCreatePanel {
     }
 
     fn view(&self) -> Element<MainMessage> {
-        widget::column![
-            widget::text(assets::TEXT.get("crew_create_title")),
+        let sub_column = widget::column![
             widget::button(assets::TEXT.get("crew_create_create"))
                 .style(widget::button::primary)
                 .on_press(MainMessage::CrewCreateMessage(
@@ -108,7 +107,12 @@ impl Panel for CrewCreatePanel {
             None
         })
         .spacing(10)
-        .padding(20)
+        .padding(20);
+
+        widget::column![
+            widget::text(assets::TEXT.get("crew_create_title")),
+            sub_column
+        ]
         .into()
     }
 }

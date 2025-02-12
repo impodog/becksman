@@ -155,7 +155,6 @@ impl Panel for CrewInfoPanel {
 
     fn view(&self) -> Element<MainMessage> {
         let mut column: Vec<Element<MainMessage>> = Vec::new();
-        column.push(widget::text(assets::TEXT.get("crew_info_title")).into());
         if let Some(data) = self.crew_data.as_ref() {
             column.push(view_data(
                 "crew_info_name",
@@ -290,12 +289,17 @@ impl Panel for CrewInfoPanel {
                     .into(),
             );
         }
-        widget::scrollable(widget::Column::from_iter(column).spacing(10).padding(20))
-            .direction(widget::scrollable::Direction::Vertical(
-                widget::scrollable::Scrollbar::new(),
-            ))
-            .height(300)
-            .into()
+        let sub_column =
+            widget::scrollable(widget::Column::from_iter(column).spacing(10).padding(20))
+                .direction(widget::scrollable::Direction::Vertical(
+                    widget::scrollable::Scrollbar::new(),
+                ))
+                .height(300);
+        widget::column![
+            widget::text(assets::TEXT.get("crew_info_title")),
+            sub_column
+        ]
+        .into()
     }
 
     fn on_start_up(&mut self) -> Task<MainMessage> {

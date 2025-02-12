@@ -108,7 +108,7 @@ impl Panel for CrewQueryPanel {
             column.push(view_location(index, loc))
         }
         widget::column![
-            widget::text(assets::TEXT.get("crew_query_title")).align_x(iced::Alignment::Center),
+            widget::text(assets::TEXT.get("crew_query_title")),
             widget::row![
                 self.pick_add(),
                 widget::button(if self.by.is_empty() {
@@ -119,9 +119,7 @@ impl Panel for CrewQueryPanel {
                 .style(widget::button::primary)
                 .on_press(MainMessage::CrewQueryMessage(CrewQueryMessage::StartQuery))
             ],
-            widget::horizontal_rule(2),
             widget::Column::from_iter(column),
-            widget::horizontal_rule(2),
         ]
         .push_maybe(self.crew.as_ref().map(|crew| {
             widget::scrollable(crew.view())

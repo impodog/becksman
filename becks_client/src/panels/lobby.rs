@@ -47,7 +47,7 @@ impl Panel for LobbyPanel {
                 ),
                 LobbyMessage::LoadedRecentPoster(poster) => {
                     if let Some(poster) = poster.try_acquire() {
-                        self.poster = poster_panel::PosterPanel::new(poster);
+                        self.poster = poster_panel::PosterPanel::new(poster, false);
                         Task::done(MainMessage::PosterMessage(
                             poster_panel::PosterMessage::Reload,
                         ))
@@ -66,11 +66,19 @@ impl Panel for LobbyPanel {
     fn view(&self) -> Element<MainMessage> {
         // TODO: Lobby Elements
         widget::column![
-            widget::button(assets::TEXT.get("lobby_crew"))
-                .style(widget::button::text)
-                .on_press(MainMessage::Open(Acquire::new(PanelHandle::new(
-                    crew_query::CrewQueryPanel::default()
-                )))),
+            widget::row![
+                widget::button(assets::TEXT.get("lobby_crew"))
+                    .style(widget::button::text)
+                    .on_press(MainMessage::Open(Acquire::new(PanelHandle::new(
+                        crew_query::CrewQueryPanel::default()
+                    )))),
+                widget::button(assets::TEXT.get("lobby_poster"))
+                    .style(widget::button::text)
+                    .on_press(MainMessage::Open(Acquire::new(PanelHandle::new(
+                        poster_query::PosterQueryPanel::default()
+                    ))))
+            ]
+            .spacing(30),
             widget::container(self.poster.view()).style(widget::container::rounded_box),
         ]
         .into()
