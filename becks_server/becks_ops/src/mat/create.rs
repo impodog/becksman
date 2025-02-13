@@ -47,10 +47,10 @@ pub fn create_round(login: &Login, round: &Round) -> Result<Id, CreateMatchError
         .db()
         .execute(
             indoc! {"
-            INSERT INTO round
-            (id, left_win)
-            VALUES ((:id), (:left_win))
-        "},
+                INSERT INTO round
+                (id, left_win)
+                VALUES ((:id), (:left_win))
+            "},
             rusqlite::named_params! {
                 ":id": id.to_prim(),
                 ":left_win": round.left_win,
@@ -64,7 +64,7 @@ pub fn create_round(login: &Login, round: &Round) -> Result<Id, CreateMatchError
 }
 
 pub fn create_match(login: &Login, mat: &Match) -> Result<Id, CreateMatchError> {
-    if mat.total_rounds as usize != mat.rounds.len() {
+    if mat.total_rounds != mat.rounds.len() {
         return Err(CreateMatchError::Incomplete);
     }
     let id = create_match_id(login);
@@ -77,21 +77,27 @@ pub fn create_match(login: &Login, mat: &Match) -> Result<Id, CreateMatchError> 
             rounds.push(' ');
         }
     }
+    info!(
+        "INSERTING {:?} {:?} {:?} {:?} {:?} {:?}",
+        id, mat.left, mat.right, mat.round_worth, rounds, mat.notes
+    );
     login
         .db()
         .execute(
             indoc! {"
-            INSERT INTO match
-            (id, left, right, round_worth, rounds, notes)
-            VALUES ((:id), (:left), (:right), (:round_worth), (:rounds), (:notes))
-        "},
+                INSERT INTO match
+                (id, left, right, round_worth, timestamp, rounds, quit, notes)
+                VALUES ((:id), (:left), (:right), (:round_worth), (:timestamp), (:rounds), (:quit), (:notes))
+            "},
             rusqlite::named_params! {
                 ":id": id.to_prim(),
                 ":left": mat.left.to_prim(),
                 ":right": mat.right.to_prim(),
                 ":round_worth": mat.round_worth,
+                ":timestamp": mat.timestamp,
                 ":rounds": rounds,
-                ":notes": mat.notes,
+                ":quit": u8::from(mat.quit),
+                ":notes": &mat.notes,
             },
         )
         .inspect_err(|err| {

@@ -41,8 +41,8 @@ fn update_crew_option(
     debug!("Right elo is {}", rhs_elo);
     let rhs_diff = estimated_var(login, rhs_crew, lhs_crew, round_worth)
         * (rhs_wins as f32 / total_round as f32 - rhs_elo);
-    debug!("Rigth diff is {}", rhs_diff);
-    if !Score::modify(Score(rhs.0 + rhs_diff.round() as i32), login, lhs_crew) {
+    debug!("Right diff is {}", rhs_diff);
+    if !Score::modify(Score(rhs.0 + rhs_diff.round() as i32), login, rhs_crew) {
         return None;
     }
     Some(())

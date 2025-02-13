@@ -42,8 +42,8 @@ impl MatchInfo {
                 mat: self.id,
             })
             .send()
-            .await?
-            .error_for_status()?;
+            .await?;
+        let response = response.error_for_status()?;
         let response: acquire::AcquireResponse = response.json().await?;
         Ok(self.data.insert(response.mat))
     }

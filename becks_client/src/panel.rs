@@ -61,6 +61,7 @@ pub enum MainMessage {
     CrewInfoMessage(crew_info::CrewInfoMessage),
     CrewCreateMessage(crew_create::CrewCreateMessage),
     MatMessage(mat_panel::MatMessage),
+    MatCreateMessage(mat_create::MatCreateMessage),
     Login(Arc<Login>),
     UpdateLogin,
     Logout,

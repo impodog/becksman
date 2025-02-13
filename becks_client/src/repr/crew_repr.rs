@@ -1,6 +1,5 @@
 use crate::prelude::*;
 use becks_crew::*;
-use std::str::FromStr;
 
 impl Repr for Gender {
     fn repr(&self) -> &'static str {

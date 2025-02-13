@@ -46,7 +46,7 @@ impl Login {
                     id INTEGER PRIMARY KEY,
                     name TEXT,
                     social BIT,
-                    score INT,
+                    score INTEGER,
                     gender BIT,
                     clothes TINYINT,
                     hand BIT,
@@ -99,9 +99,10 @@ impl Login {
                     id INTEGER PRIMARY KEY,
                     left INTEGER,
                     right INTEGER,
-                    round_worth INT UNSIGNED,
-                    timestamp INT UNSIGNED,
+                    round_worth INTEGER,
+                    timestamp INTEGER,
                     rounds TEXT,
+                    quit INTEGER,
                     notes TEXT
                 )
             "},
@@ -115,7 +116,7 @@ impl Login {
                 indoc! {"
                     CREATE INDEX idx_left ON match (left);
                     CREATE INDEX idx_right ON match (right);
-                    CREATE INDEX idx_timestamp ON match (timestamp)
+                    CREATE INDEX idx_timestamp ON match (timestamp);
                     CREATE INDEX idx_notes ON match (notes)
                 "},
                 [],

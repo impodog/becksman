@@ -10,11 +10,11 @@ impl Id {
         Self(rand::random())
     }
 
-    pub fn to_prim(&self) -> u32 {
+    pub const fn to_prim(&self) -> u32 {
         self.0
     }
 
-    pub fn from_prim(value: u32) -> Self {
+    pub const fn from_prim(value: u32) -> Self {
         Self(value)
     }
 }

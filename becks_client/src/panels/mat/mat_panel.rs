@@ -138,9 +138,7 @@ impl Panel for MatPanel {
                     );
                     column.push(widget::Rule::horizontal(2).into());
                 }
-                widget::scrollable(widget::Column::from_iter(column))
-                    .height(iced::FillPortion(1000))
-                    .into()
+                widget::scrollable(widget::Column::from_iter(column)).into()
             }
         } else {
             widget::text(assets::TEXT.get("mat_loading"))
@@ -156,8 +154,8 @@ impl Panel for MatPanel {
 }
 
 fn view_mat(mat: &MatLoaded, limit: bool) -> Element<MainMessage> {
-    let mut column: Vec<Element<MainMessage>> = Vec::new();
-    column.push(widget::text(format!("{} - {}", mat.left, mat.right)).into());
+    let mut row: Vec<Element<MainMessage>> = Vec::new();
+    row.push(widget::text(format!("{} vs. {}", mat.left, mat.right)).into());
     match mat.mat.quit {
         Quit::Normal => {
             let left_wins =
@@ -166,10 +164,10 @@ fn view_mat(mat: &MatLoaded, limit: bool) -> Element<MainMessage> {
                     |sum, round| if round.left_win { sum + 1 } else { sum },
                 );
             let right_wins = mat.mat.total_rounds as i32 - left_wins;
-            column.push(widget::text(format!("{} : {}", left_wins, right_wins)).into());
+            row.push(widget::text(format!("{} : {}", left_wins, right_wins)).into());
         }
         Quit::LeftQuit => {
-            column.push(
+            row.push(
                 widget::text(format!(
                     "{}; 0 : {}",
                     assets::TEXT.get("mat_left_quit"),
@@ -179,7 +177,7 @@ fn view_mat(mat: &MatLoaded, limit: bool) -> Element<MainMessage> {
             );
         }
         Quit::RightQuit => {
-            column.push(
+            row.push(
                 widget::text(format!(
                     "{}; {} : 0",
                     assets::TEXT.get("mat_right_quit"),
@@ -189,8 +187,5 @@ fn view_mat(mat: &MatLoaded, limit: bool) -> Element<MainMessage> {
             );
         }
     }
-    widget::Column::from_iter(column)
-        .spacing(15)
-        .padding(10)
-        .into()
+    widget::Row::from_iter(row).spacing(15).padding(10).into()
 }

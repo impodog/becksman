@@ -61,8 +61,8 @@ impl MatchList {
     /// Forces reload all matches from the server
     pub async fn reload(&self, login: &Login) -> Result<()> {
         let mut futures = Vec::new();
-        for crew in self.list.iter() {
-            futures.push(async { crew.write().await.reload(login).await.map(|_| ()) });
+        for mat in self.list.iter() {
+            futures.push(async { mat.write().await.reload(login).await.map(|_| ()) });
         }
         for future in futures.into_iter() {
             future.await?;

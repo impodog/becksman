@@ -7,6 +7,7 @@ pub struct Interact {
     pub recent: std::time::Duration,
     pub poster_text_len: usize,
     pub poster_image_len: usize,
+    pub default_rounds: usize,
 }
 impl Default for Interact {
     fn default() -> Self {
@@ -14,6 +15,7 @@ impl Default for Interact {
             recent: std::time::Duration::new(604800, 0),
             poster_text_len: 100,
             poster_image_len: 1,
+            default_rounds: 3,
         }
     }
 }

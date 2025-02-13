@@ -7,13 +7,14 @@ pub trait Column: Sized {
     fn acquire(value: Self::Target) -> Self;
     /// Returns true if modification is successful
     fn modify(self, login: &Login, crew: Id) -> bool {
+        debug!("Updating crew column {}", Self::name());
         login
             .db()
             .execute(
                 &formatdoc! {"
-                    UPDATE crew
-                    SET {column} = (:value)
-                    WHERE id = (:id)
+                        UPDATE crew
+                        SET {column} = (:value)
+                        WHERE id = (:id)
                     ",
                     column = Self::name(),
                 },

@@ -46,6 +46,17 @@ impl ToString for AddChoice {
     }
 }
 
+impl CrewQueryPanel {
+    pub fn selection(&self) -> std::sync::MutexGuard<HashSet<Id>> {
+        self.selected.lock().unwrap()
+    }
+
+    pub fn select_only(mut self) -> Self {
+        self.select_only = true;
+        self
+    }
+}
+
 impl Panel for CrewQueryPanel {
     fn update_with_login(&mut self, login: Arc<Login>, message: MainMessage) -> Task<MainMessage> {
         self.error = false;
@@ -117,7 +128,11 @@ impl Panel for CrewQueryPanel {
             column.push(view_location(index, loc))
         }
         widget::column![
-            widget::text(assets::TEXT.get("crew_query_title")),
+            widget::text(if self.select_only {
+                assets::TEXT.get("crew_query_title_select")
+            } else {
+                assets::TEXT.get("crew_query_title")
+            }),
             widget::row![
                 self.pick_add(),
                 widget::button(if self.by.is_empty() {
