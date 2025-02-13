@@ -32,11 +32,13 @@ impl Default for Server {
 #[derive(Serialize, Deserialize, Clone)]
 pub struct User {
     pub timeout: std::time::Duration,
+    pub elo_scaler: f32,
 }
 impl Default for User {
     fn default() -> Self {
         Self {
             timeout: std::time::Duration::new(60, 0),
+            elo_scaler: 3.0,
         }
     }
 }

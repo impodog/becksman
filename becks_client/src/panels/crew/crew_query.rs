@@ -99,6 +99,7 @@ impl Panel for CrewQueryPanel {
                             self.crew = Some(crew_panel::CrewPanel::new_with_select(
                                 list,
                                 self.selected.clone(),
+                                false,
                             ));
                         } else {
                             self.crew = Some(crew_panel::CrewPanel::new(list));

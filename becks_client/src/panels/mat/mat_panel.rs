@@ -13,6 +13,8 @@ pub struct MatPanel {
     mat: Arc<mat::MatchList>,
     loaded: Vec<MatLoaded>,
     is_loaded: bool,
+    /// The focus crew id, if any
+    focus: Option<Id>,
 }
 
 #[derive(Debug, Clone)]
@@ -24,11 +26,12 @@ pub enum MatMessage {
 }
 
 impl MatPanel {
-    pub fn new(list: mat::MatchList) -> Self {
+    pub fn new(list: mat::MatchList, focus: Option<Id>) -> Self {
         Self {
             mat: Arc::new(list),
             loaded: Default::default(),
             is_loaded: false,
+            focus,
         }
     }
 
@@ -129,13 +132,13 @@ impl Panel for MatPanel {
             } else {
                 let mut column: Vec<Element<MainMessage>> = Vec::new();
                 for (index, mat) in self.loaded.iter().enumerate() {
-                    column.push(view_mat(mat, true));
-                    column.push(
-                        widget::button(widget::image("assets/jump.png"))
-                            .height(25)
-                            .on_press(MainMessage::MatMessage(MatMessage::View(index)))
-                            .into(),
-                    );
+                    column.push(view_mat(mat, self.focus));
+                    // column.push(
+                    //     widget::button(widget::image("assets/jump.png"))
+                    //         .height(25)
+                    //         .on_press(MainMessage::MatMessage(MatMessage::View(index)))
+                    //         .into(),
+                    // );
                     column.push(widget::Rule::horizontal(2).into());
                 }
                 widget::scrollable(widget::Column::from_iter(column)).into()
@@ -153,7 +156,7 @@ impl Panel for MatPanel {
     }
 }
 
-fn view_mat(mat: &MatLoaded, limit: bool) -> Element<MainMessage> {
+fn view_mat(mat: &MatLoaded, focus: Option<Id>) -> Element<MainMessage> {
     let mut row: Vec<Element<MainMessage>> = Vec::new();
     row.push(widget::text(format!("{} vs. {}", mat.left, mat.right)).into());
     match mat.mat.quit {
@@ -186,6 +189,24 @@ fn view_mat(mat: &MatLoaded, limit: bool) -> Element<MainMessage> {
                 .into(),
             );
         }
+    }
+    if let Some(focus) = focus {
+        let mut earn = 0;
+        if mat.mat.left == focus {
+            earn += mat.mat.left_earn;
+        }
+        if mat.mat.right == focus {
+            earn += mat.mat.right_earn;
+        }
+        row.push(
+            widget::text(format!("{}{}", if earn >= 0 { "+" } else { "" }, earn))
+                .style(if earn >= 0 {
+                    widget::text::success
+                } else {
+                    widget::text::danger
+                })
+                .into(),
+        )
     }
     widget::Row::from_iter(row).spacing(15).padding(10).into()
 }

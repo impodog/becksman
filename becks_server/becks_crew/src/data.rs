@@ -71,4 +71,5 @@ pub enum CrewLocation {
     Paddle(Paddle),
     Red(RedRubber),
     Black(BlackRubber),
+    Deleted(bool),
 }

@@ -53,7 +53,8 @@ impl Login {
                     hold BIT,
                     paddle TEXT,
                     red_rubber TEXT,
-                    black_rubber TEXT
+                    black_rubber TEXT,
+                    deleted BIT
                 )"
                 },
                 [],
@@ -103,7 +104,9 @@ impl Login {
                     timestamp INTEGER,
                     rounds TEXT,
                     quit INTEGER,
-                    notes TEXT
+                    notes TEXT,
+                    left_earn INTEGER,
+                    right_earn INTEGER
                 )
             "},
                 [],

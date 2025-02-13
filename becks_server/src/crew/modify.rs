@@ -44,6 +44,7 @@ pub(super) async fn modify_crew(req: web::Json<ModifyRequest>, db: DbData) -> Ht
         Loc::Paddle(paddle) => modify_by!(Paddle, paddle, login, req),
         Loc::Red(red) => modify_by!(RedRubber, red, login, req),
         Loc::Black(black) => modify_by!(BlackRubber, black, login, req),
+        Loc::Deleted(deleted) => modify_by!(bool, deleted, login, req),
     }
 }
 

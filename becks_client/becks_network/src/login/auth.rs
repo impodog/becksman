@@ -88,7 +88,7 @@ impl Login {
 
 static CLIENT: LazyLock<reqwest::Client> = LazyLock::new(|| {
     reqwest::Client::builder()
-        .timeout(std::time::Duration::new(10, 0))
+        .timeout(std::time::Duration::new(1, 0))
         .build()
         .expect("client should succeed to build")
 });

@@ -18,7 +18,7 @@ fn update_crew_option(
     lhs_wins: i32,
     rhs_wins: i32,
     round_worth: u32,
-) -> Option<()> {
+) -> Option<(i32, i32)> {
     let lhs = Score::query(login, lhs_crew, true)?;
     let rhs = Score::query(login, rhs_crew, true)?;
     debug!("Starting score: {:?} and {:?}", lhs, rhs);
@@ -31,25 +31,29 @@ fn update_crew_option(
     let lhs_elo = calc_elo(lhs, rhs);
     debug!("Left elo is {}", lhs_elo);
     let lhs_diff = estimated_var(login, lhs_crew, rhs_crew, round_worth)
-        * (lhs_wins as f32 / total_round as f32 - lhs_elo);
+        * (lhs_wins as f32 / total_round as f32 - lhs_elo)
+        * becks_db::CONFIG.user.elo_scaler;
+    let lhs_diff = lhs_diff.round() as i32;
     debug!("Left diff is {}", lhs_diff);
-    if !Score::modify(Score(lhs.0 + lhs_diff.round() as i32), login, lhs_crew) {
+    if !Score::modify(Score(lhs.0 + lhs_diff), login, lhs_crew) {
         return None;
     }
     // For rhs:
     let rhs_elo = calc_elo(rhs, lhs);
     debug!("Right elo is {}", rhs_elo);
     let rhs_diff = estimated_var(login, rhs_crew, lhs_crew, round_worth)
-        * (rhs_wins as f32 / total_round as f32 - rhs_elo);
+        * (rhs_wins as f32 / total_round as f32 - rhs_elo)
+        * becks_db::CONFIG.user.elo_scaler;
+    let rhs_diff = rhs_diff.round() as i32;
     debug!("Right diff is {}", rhs_diff);
-    if !Score::modify(Score(rhs.0 + rhs_diff.round() as i32), login, rhs_crew) {
+    if !Score::modify(Score(rhs.0 + rhs_diff), login, rhs_crew) {
         return None;
     }
-    Some(())
+    Some((lhs_diff, rhs_diff))
 }
 
-/// Updates crew score accordingly, returning true if successful
-pub fn update_crew(login: &Login, mat: &Match) -> bool {
+/// Updates crew score accordingly, returning left earn and right earn scores if successful
+pub fn update_crew(login: &Login, mat: &Match) -> Option<(i32, i32)> {
     let lhs_wins = mat
         .rounds
         .iter()
@@ -63,5 +67,4 @@ pub fn update_crew(login: &Login, mat: &Match) -> bool {
         rhs_wins,
         mat.round_worth,
     )
-    .is_some()
 }

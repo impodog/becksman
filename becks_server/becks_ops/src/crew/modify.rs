@@ -230,3 +230,16 @@ impl Column for BlackRubber {
         }
     }
 }
+
+impl Column for bool {
+    type Target = bool;
+    fn name() -> &'static str {
+        "deleted"
+    }
+    fn convert(self) -> Self::Target {
+        self
+    }
+    fn acquire(value: Self::Target) -> Self {
+        value
+    }
+}

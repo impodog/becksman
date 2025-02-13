@@ -20,8 +20,8 @@ pub fn create_crew(login: &Login, name: &str, social: Social) -> Option<Id> {
         .unwrap()
         .execute(
             indoc! {"
-                INSERT INTO crew (id, name, social, score)
-                VALUES ((:id), (:name), (:social), (:score))
+                INSERT INTO crew (id, name, social, score, deleted)
+                VALUES ((:id), (:name), (:social), (:score), FALSE)
         "},
             rusqlite::named_params! {
                 ":id": id.to_prim(),

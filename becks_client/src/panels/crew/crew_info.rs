@@ -7,6 +7,7 @@ use tokio::sync::Mutex;
 #[derive(Debug)]
 pub struct CrewInfoPanel {
     crew: Arc<Mutex<crew::CrewInfo>>,
+    id: Option<Id>,
     crew_data: Option<CrewData>,
     mat: Option<mat_panel::MatPanel>,
     error: bool,
@@ -16,7 +17,7 @@ pub struct CrewInfoPanel {
 #[derive(Debug, Clone)]
 pub enum CrewInfoMessage {
     Load,
-    Loaded(Acquire<(CrewData, Option<mat::MatchList>)>),
+    Loaded(Acquire<(Id, CrewData, Option<mat::MatchList>)>),
     LoadError,
     Update(CrewLocation),
     DeleteConfirm,
@@ -27,6 +28,7 @@ impl CrewInfoPanel {
     pub fn new(id: Id) -> Self {
         Self {
             crew: Arc::new(Mutex::new(crew::CrewInfo::new(id))),
+            id: None,
             crew_data: None,
             mat: None,
             error: false,
@@ -108,7 +110,7 @@ impl Panel for CrewInfoPanel {
                                 crew_future
                                     .await
                                     .cloned()
-                                    .map(|crew_data| (crew_data, None))
+                                    .map(|crew_data| (id, crew_data, None))
                             } else {
                                 let mat_future = mat::MatchList::query(
                                     login.as_ref(),
@@ -116,7 +118,7 @@ impl Panel for CrewInfoPanel {
                                 );
                                 match crew_future.await.cloned() {
                                     Ok(crew_data) => {
-                                        mat_future.await.map(move |mat| (crew_data, Some(mat)))
+                                        mat_future.await.map(move |mat| (id, crew_data, Some(mat)))
                                     }
                                     Err(err) => Err(err),
                                 }
@@ -134,10 +136,11 @@ impl Panel for CrewInfoPanel {
                     )
                 }
                 CrewInfoMessage::Loaded(crew_data) => {
-                    if let Some((crew_data, mat)) = crew_data.try_acquire() {
+                    if let Some((id, crew_data, mat)) = crew_data.try_acquire() {
+                        self.id = Some(id);
                         self.crew_data = Some(crew_data);
                         if let Some(mat) = mat {
-                            self.mat = Some(mat_panel::MatPanel::new(mat));
+                            self.mat = Some(mat_panel::MatPanel::new(mat, Some(id)));
                         }
                         self.error = false;
                         Task::done(MainMessage::MatMessage(mat_panel::MatMessage::Load))

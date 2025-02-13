@@ -86,8 +86,9 @@ pub fn create_match(login: &Login, mat: &Match) -> Result<Id, CreateMatchError> 
         .execute(
             indoc! {"
                 INSERT INTO match
-                (id, left, right, round_worth, timestamp, rounds, quit, notes)
-                VALUES ((:id), (:left), (:right), (:round_worth), (:timestamp), (:rounds), (:quit), (:notes))
+                (id, left, right, round_worth, timestamp, rounds, quit, notes, left_earn, right_earn)
+                VALUES ((:id), (:left), (:right), (:round_worth),
+                    (:timestamp), (:rounds), (:quit), (:notes), (:left_earn), (:right_earn))
             "},
             rusqlite::named_params! {
                 ":id": id.to_prim(),
@@ -98,6 +99,8 @@ pub fn create_match(login: &Login, mat: &Match) -> Result<Id, CreateMatchError> 
                 ":rounds": rounds,
                 ":quit": u8::from(mat.quit),
                 ":notes": &mat.notes,
+                ":left_earn": mat.left_earn,
+                ":right_earn": mat.right_earn
             },
         )
         .inspect_err(|err| {

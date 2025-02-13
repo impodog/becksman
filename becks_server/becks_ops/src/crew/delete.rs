@@ -3,7 +3,7 @@ use crate::prelude::*;
 pub fn delete_crew(login: &Login, crew: Id) -> bool {
     let db = login.db();
     db.execute(
-        indoc! {"DELETE FROM crew WHERE id = (:id)"},
+        indoc! {"UPDATE crew SET deleted = TRUE WHERE id = (:id)"},
         rusqlite::named_params! {":id": crew.to_prim()},
     )
     .inspect_err(|err| {

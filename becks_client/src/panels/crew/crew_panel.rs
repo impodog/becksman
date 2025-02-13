@@ -9,6 +9,7 @@ pub struct CrewPanel {
     loaded: Vec<(Id, CrewData)>,
     is_loaded: bool,
     select_only: bool,
+    allow_select_all: bool,
     pub selected: Arc<Mutex<HashSet<Id>>>,
 }
 
@@ -28,16 +29,22 @@ impl CrewPanel {
             loaded: Default::default(),
             is_loaded: false,
             select_only: false,
+            allow_select_all: false,
             selected: Default::default(),
         }
     }
 
-    pub fn new_with_select(crew: crew::CrewList, selected: Arc<Mutex<HashSet<Id>>>) -> Self {
+    pub fn new_with_select(
+        crew: crew::CrewList,
+        selected: Arc<Mutex<HashSet<Id>>>,
+        allow_select_all: bool,
+    ) -> Self {
         Self {
             crew: Arc::new(crew),
             loaded: Default::default(),
             is_loaded: false,
             select_only: true,
+            allow_select_all,
             selected,
         }
     }
@@ -132,10 +139,10 @@ impl Panel for CrewPanel {
                     ));
                     column.push(widget::Rule::horizontal(1).into());
                 }
-                if self.select_only {
+                if self.select_only && self.allow_select_all {
                     column.push(
                         widget::button(assets::TEXT.get("crew_select_all"))
-                            .height(25)
+                            .height(30)
                             .on_press(MainMessage::CrewMessage(CrewMessage::SelectAll))
                             .into(),
                     );

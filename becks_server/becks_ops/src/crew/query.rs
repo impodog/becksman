@@ -72,13 +72,20 @@ fn no_produce_condition(loc: &CrewLocation) -> bool {
     matches!(loc, CrewLocation::Score(_))
 }
 
+fn not_deleted(loc: &CrewLocation) -> bool {
+    !matches!(loc, CrewLocation::Deleted(_))
+}
+
 impl Query for QueryBy {
-    fn query(self, login: &Login) -> Vec<Id> {
+    fn query(mut self, login: &Login) -> Vec<Id> {
         use crate::crew::Column;
         use CrewLocation as Loc;
         let mut sql = String::from("SELECT id FROM crew");
         let mut params = Vec::new();
 
+        if self.by.iter().all(not_deleted) {
+            self.by.push(Loc::Deleted(false));
+        }
         // special: if the query is empty, there is no WHERE
         if !self.by.is_empty() && (!self.fuzzy || !self.by.iter().all(no_produce_condition)) {
             sql.push_str(" WHERE ");
@@ -116,6 +123,7 @@ impl Query for QueryBy {
                 Loc::Paddle(paddle) => extend_query_sql!(Paddle, sql, params, pos, paddle),
                 Loc::Red(red) => extend_query_sql!(RedRubber, sql, params, pos, red),
                 Loc::Black(black) => extend_query_sql!(BlackRubber, sql, params, pos, black),
+                Loc::Deleted(deleted) => extend_query_sql!(bool, sql, params, pos, deleted),
             }
         }
         #[allow(unused_assignments)]

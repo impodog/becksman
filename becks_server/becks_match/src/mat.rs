@@ -26,6 +26,10 @@ pub struct Match {
     pub quit: Quit,
     #[serde(default)]
     pub notes: String,
+    #[serde(default)]
+    pub left_earn: i32,
+    #[serde(default)]
+    pub right_earn: i32,
 }
 
 impl Match {
@@ -39,6 +43,8 @@ impl Match {
             timestamp,
             quit: Default::default(),
             notes: Default::default(),
+            left_earn: Default::default(),
+            right_earn: Default::default(),
         }
     }
 }
