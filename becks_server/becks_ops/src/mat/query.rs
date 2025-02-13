@@ -10,6 +10,7 @@ pub fn query(login: &Login, query: &QueryRequest) -> Vec<Id> {
     if !query.is_empty() {
         sql.push_str(" WHERE ");
     }
+    let mut contains_time = false;
     let mut position = 1;
     for (index, query) in query.iter().enumerate() {
         match query {
@@ -31,11 +32,15 @@ pub fn query(login: &Login, query: &QueryRequest) -> Vec<Id> {
                 store.push(box_sql(left));
                 store.push(box_sql(right));
                 position += 2;
+                contains_time = true;
             }
         }
-        if index != query_len {
+        if index + 1 != query_len {
             sql.push_str(" AND ");
         }
+    }
+    if !contains_time {
+        sql.push_str(" ORDER BY timestamp DESC");
     }
     debug!("Querying the database with sql {}", sql);
     match login.db().prepare(&sql) {

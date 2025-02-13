@@ -167,22 +167,14 @@ impl Panel for PosterQueryPanel {
     fn view(&self) -> Element<MainMessage> {
         widget::column![
             widget::text(assets::TEXT.get("poster_query_title")),
-            widget::row![
-                widget::button(if self.keywords.is_empty() {
-                    assets::TEXT.get("poster_query_acquire")
-                } else {
-                    assets::TEXT.get("poster_query_start")
-                })
-                .on_press(MainMessage::PosterQueryMessage(
-                    PosterQueryMessage::StartQuery
-                )),
-                widget::button(assets::TEXT.get("poster_query_create")).on_press(
-                    MainMessage::Open(Acquire::new(PanelHandle::new(
-                        poster_create::PosterCreatePanel::default()
-                    )))
-                )
-            ]
-            .spacing(10),
+            widget::button(if self.keywords.is_empty() {
+                assets::TEXT.get("poster_query_acquire")
+            } else {
+                assets::TEXT.get("poster_query_start")
+            })
+            .on_press(MainMessage::PosterQueryMessage(
+                PosterQueryMessage::StartQuery
+            )),
             view_keywords(self.keywords.as_slice()),
             // TODO: Allow time viewing later
             // self.time.view(),
@@ -193,6 +185,12 @@ impl Panel for PosterQueryPanel {
         } else {
             None
         })
+        .push(widget::horizontal_rule(2))
+        .push(
+            widget::button(assets::TEXT.get("poster_query_create")).on_press(MainMessage::Open(
+                Acquire::new(PanelHandle::new(poster_create::PosterCreatePanel::default())),
+            )),
+        )
         .spacing(10)
         .into()
     }

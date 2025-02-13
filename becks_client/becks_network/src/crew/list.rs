@@ -49,6 +49,15 @@ impl CrewList {
         Ok(result)
     }
 
+    pub fn new(ids: impl IntoIterator<Item = Id>) -> Self {
+        Self {
+            list: ids
+                .into_iter()
+                .map(|id| RwLock::new(CrewInfo::new(id)))
+                .collect(),
+        }
+    }
+
     /// Asynchronously sorts the list by the value provided by the function
     pub async fn sort_by_value<F, R, T>(&mut self, f: F) -> Result<()>
     where

@@ -1,11 +1,15 @@
 use crate::prelude::*;
 use becks_crew::*;
+use std::collections::HashSet;
+use std::sync::Mutex;
 
 #[derive(Debug)]
 pub struct CrewPanel {
     crew: Arc<crew::CrewList>,
     loaded: Vec<(Id, CrewData)>,
     is_loaded: bool,
+    select_only: bool,
+    pub selected: Arc<Mutex<HashSet<Id>>>,
 }
 
 #[derive(Debug, Clone)]
@@ -13,6 +17,8 @@ pub enum CrewMessage {
     Reload,
     Load,
     Loaded(Acquire<Vec<(Id, CrewData)>>),
+    Select(Id),
+    SelectAll,
 }
 
 impl CrewPanel {
@@ -21,6 +27,18 @@ impl CrewPanel {
             crew: Arc::new(crew),
             loaded: Default::default(),
             is_loaded: false,
+            select_only: false,
+            selected: Default::default(),
+        }
+    }
+
+    pub fn new_with_select(crew: crew::CrewList, selected: Arc<Mutex<HashSet<Id>>>) -> Self {
+        Self {
+            crew: Arc::new(crew),
+            loaded: Default::default(),
+            is_loaded: false,
+            select_only: true,
+            selected,
         }
     }
 }
@@ -79,6 +97,22 @@ impl Panel for CrewPanel {
                     }
                     Task::none()
                 }
+                CrewMessage::Select(id) => {
+                    let mut selected = self.selected.lock().unwrap();
+                    if !selected.insert(id) {
+                        selected.remove(&id);
+                    }
+                    Task::none()
+                }
+                CrewMessage::SelectAll => {
+                    let mut selected = self.selected.lock().unwrap();
+                    if selected.len() == self.loaded.len() {
+                        selected.clear();
+                    } else {
+                        *selected = HashSet::from_iter(self.loaded.iter().map(|(id, _)| *id));
+                    }
+                    Task::none()
+                }
             },
             _ => Task::none(),
         }
@@ -90,8 +124,21 @@ impl Panel for CrewPanel {
             } else {
                 let mut column: Vec<Element<MainMessage>> = Vec::new();
                 for (id, crew) in self.loaded.iter() {
-                    column.push(view_crew(*id, crew));
+                    column.push(view_crew(
+                        *id,
+                        crew,
+                        &self.selected.lock().unwrap(),
+                        self.select_only,
+                    ));
                     column.push(widget::Rule::horizontal(1).into());
+                }
+                if self.select_only {
+                    column.push(
+                        widget::button(assets::TEXT.get("crew_select_all"))
+                            .height(25)
+                            .on_press(MainMessage::CrewMessage(CrewMessage::SelectAll))
+                            .into(),
+                    );
                 }
                 widget::Column::from_iter(column).into()
             }
@@ -112,16 +159,33 @@ impl Panel for CrewPanel {
     }
 }
 
-fn view_crew(id: Id, crew: &CrewData) -> Element<MainMessage> {
-    widget::container(widget::row![
-        widget::text(&crew.name).align_y(iced::Alignment::Center),
-        widget::horizontal_space(),
+fn view_crew<'a>(
+    id: Id,
+    crew: &'a CrewData,
+    selected: &HashSet<Id>,
+    select_only: bool,
+) -> Element<'a, MainMessage> {
+    let button = if select_only {
+        widget::button(if selected.contains(&id) {
+            widget::image("assets/remove.png")
+        } else {
+            widget::image("assets/add.png")
+        })
+        .height(30)
+        .width(30)
+        .on_press(MainMessage::CrewMessage(CrewMessage::Select(id)))
+    } else {
         widget::button(widget::image("assets/jump.png"))
             .height(30)
             .width(30)
             .on_press(MainMessage::Open(Acquire::new(PanelHandle::new(
-                crew_info::CrewInfoPanel::new(id)
-            )))),
+                crew_info::CrewInfoPanel::new(id),
+            ))))
+    };
+    widget::container(widget::row![
+        widget::text(&crew.name).align_y(iced::Alignment::Center),
+        widget::horizontal_space(),
+        button,
     ])
     .style(widget::container::rounded_box)
     .into()

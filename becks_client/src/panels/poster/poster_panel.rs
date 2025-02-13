@@ -130,7 +130,7 @@ impl Panel for PosterPanel {
                     column.push(widget::Rule::horizontal(2).into());
                 }
                 widget::scrollable(widget::Column::from_iter(column))
-                    .height(300)
+                    .height(iced::FillPortion(1000))
                     .into()
             }
         } else {
@@ -166,6 +166,7 @@ pub fn view_poster(poster: &becks_poster::Poster, limit: bool) -> Element<MainMe
             widget::image(image)
                 .content_fit(iced::ContentFit::ScaleDown)
                 .width(175)
+                .height(175)
                 .into(),
         );
         if count == 3 {

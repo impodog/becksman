@@ -1,13 +1,15 @@
 use crate::prelude::*;
 use becks_crew::*;
+use std::collections::HashSet;
 use std::sync::Mutex;
 
 #[derive(Debug, Default)]
 pub struct CrewQueryPanel {
     by: Vec<CrewLocation>,
     crew: Option<crew_panel::CrewPanel>,
-    selected: Vec<Id>,
     error: bool,
+    select_only: bool,
+    selected: Arc<Mutex<HashSet<Id>>>,
 }
 
 #[derive(Debug, Clone)]
@@ -82,7 +84,14 @@ impl Panel for CrewQueryPanel {
                 }
                 CrewQueryMessage::QueryDone(list) => {
                     if let Some(list) = list.try_acquire() {
-                        self.crew = Some(crew_panel::CrewPanel::new(list));
+                        if self.select_only {
+                            self.crew = Some(crew_panel::CrewPanel::new_with_select(
+                                list,
+                                self.selected.clone(),
+                            ));
+                        } else {
+                            self.crew = Some(crew_panel::CrewPanel::new(list));
+                        }
                         Task::done(MainMessage::CrewMessage(crew_panel::CrewMessage::Load))
                     } else {
                         Task::none()
@@ -118,7 +127,8 @@ impl Panel for CrewQueryPanel {
                 })
                 .style(widget::button::primary)
                 .on_press(MainMessage::CrewQueryMessage(CrewQueryMessage::StartQuery))
-            ],
+            ]
+            .spacing(10),
             widget::Column::from_iter(column),
         ]
         .push_maybe(self.crew.as_ref().map(|crew| {
@@ -134,14 +144,18 @@ impl Panel for CrewQueryPanel {
             None
         })
         .spacing(10)
-        .extend([
-            widget::horizontal_rule(4).into(),
-            widget::button(assets::TEXT.get("crew_query_create"))
-                .on_press(MainMessage::Open(Acquire::new(PanelHandle::new(
-                    crew_create::CrewCreatePanel::default(),
-                ))))
-                .into(),
-        ])
+        .extend(if self.select_only {
+            vec![]
+        } else {
+            vec![
+                widget::horizontal_rule(4).into(),
+                widget::button(assets::TEXT.get("crew_query_create"))
+                    .on_press(MainMessage::Open(Acquire::new(PanelHandle::new(
+                        crew_create::CrewCreatePanel::default(),
+                    ))))
+                    .into(),
+            ]
+        })
         .into()
     }
     fn on_rewind_to(&mut self) -> Task<MainMessage> {

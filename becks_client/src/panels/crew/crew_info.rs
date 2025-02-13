@@ -8,6 +8,7 @@ use tokio::sync::Mutex;
 pub struct CrewInfoPanel {
     crew: Arc<Mutex<crew::CrewInfo>>,
     crew_data: Option<CrewData>,
+    mat: Option<mat_panel::MatPanel>,
     error: bool,
     delete_confirm: bool,
 }
@@ -15,7 +16,7 @@ pub struct CrewInfoPanel {
 #[derive(Debug, Clone)]
 pub enum CrewInfoMessage {
     Load,
-    Loaded(Acquire<CrewData>),
+    Loaded(Acquire<(CrewData, Option<mat::MatchList>)>),
     LoadError,
     Update(CrewLocation),
     DeleteConfirm,
@@ -27,6 +28,7 @@ impl CrewInfoPanel {
         Self {
             crew: Arc::new(Mutex::new(crew::CrewInfo::new(id))),
             crew_data: None,
+            mat: None,
             error: false,
             delete_confirm: false,
         }
@@ -93,11 +95,36 @@ impl Panel for CrewInfoPanel {
             MainMessage::CrewInfoMessage(message) => match message {
                 CrewInfoMessage::Load => {
                     let crew = self.crew.clone();
+                    let is_loaded = self
+                        .mat
+                        .as_ref()
+                        .is_some_and(mat_panel::MatPanel::is_loaded);
                     Task::perform(
-                        async move { crew.lock().await.load(login.as_ref()).await.cloned() },
+                        async move {
+                            let mut lock = crew.lock().await;
+                            let id = lock.id();
+                            let crew_future = lock.load(login.as_ref());
+                            if is_loaded {
+                                crew_future
+                                    .await
+                                    .cloned()
+                                    .map(|crew_data| (crew_data, None))
+                            } else {
+                                let mat_future = mat::MatchList::query(
+                                    login.as_ref(),
+                                    vec![mat::methods::query::QueryMatchBy::Player(id)],
+                                );
+                                match crew_future.await.cloned() {
+                                    Ok(crew_data) => {
+                                        mat_future.await.map(move |mat| (crew_data, Some(mat)))
+                                    }
+                                    Err(err) => Err(err),
+                                }
+                            }
+                        },
                         |crew| match crew {
-                            Ok(crew_data) => MainMessage::CrewInfoMessage(CrewInfoMessage::Loaded(
-                                Acquire::new(crew_data),
+                            Ok(data) => MainMessage::CrewInfoMessage(CrewInfoMessage::Loaded(
+                                Acquire::new(data),
                             )),
                             Err(err) => {
                                 warn!("When loading crew message, {}", err);
@@ -107,11 +134,16 @@ impl Panel for CrewInfoPanel {
                     )
                 }
                 CrewInfoMessage::Loaded(crew_data) => {
-                    if let Some(crew_data) = crew_data.try_acquire() {
+                    if let Some((crew_data, mat)) = crew_data.try_acquire() {
                         self.crew_data = Some(crew_data);
+                        if let Some(mat) = mat {
+                            self.mat = Some(mat_panel::MatPanel::new(mat));
+                        }
                         self.error = false;
+                        Task::done(MainMessage::MatMessage(mat_panel::MatMessage::Load))
+                    } else {
+                        Task::none()
                     }
-                    Task::none()
                 }
                 CrewInfoMessage::Update(loc) => {
                     let crew = self.crew.clone();
@@ -148,7 +180,11 @@ impl Panel for CrewInfoPanel {
                 }
             },
             _ => {
-                todo!()
+                if let Some(mat) = self.mat.as_mut() {
+                    mat.update_with_login(login, message)
+                } else {
+                    Task::none()
+                }
             }
         }
     }
@@ -263,6 +299,14 @@ impl Panel for CrewInfoPanel {
                 Black,
                 black
             ));
+
+            if let Some(mat) = self.mat.as_ref() {
+                column.push(
+                    widget::container(mat.view())
+                        .style(widget::container::rounded_box)
+                        .into(),
+                );
+            }
 
             column.push(
                 widget::button(if self.delete_confirm {
