@@ -42,6 +42,7 @@ pub fn query(login: &Login, query: &QueryRequest) -> Vec<Id> {
     if !contains_time {
         sql.push_str(" ORDER BY timestamp DESC");
     }
+    sql.push_str(&format!(" LIMIT {}", becks_db::CONFIG.db.mat_limit));
     debug!("Querying the database with sql {}", sql);
     match login.db().prepare(&sql) {
         Ok(mut stmt) => {

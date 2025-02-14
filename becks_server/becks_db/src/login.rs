@@ -54,6 +54,7 @@ impl Login {
                     paddle TEXT,
                     red_rubber TEXT,
                     black_rubber TEXT,
+                    beat TEXT,
                     deleted BIT
                 )"
                 },

@@ -45,6 +45,15 @@ impl Default for Score {
     }
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BeatItem {
+    pub oppo: String,
+    pub score: Score,
+}
+
+#[derive(Default, Debug, Clone, Serialize, Deserialize)]
+pub struct Beat(pub Vec<BeatItem>);
+
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct CrewData {
     pub name: String,
@@ -57,6 +66,7 @@ pub struct CrewData {
     pub paddle: Option<Paddle>,
     pub red: Option<RedRubber>,
     pub black: Option<BlackRubber>,
+    pub beat: Option<Beat>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -71,5 +81,6 @@ pub enum CrewLocation {
     Paddle(Paddle),
     Red(RedRubber),
     Black(BlackRubber),
+    Beat(Beat),
     Deleted(bool),
 }

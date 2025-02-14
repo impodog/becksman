@@ -1,3 +1,4 @@
+mod arrange;
 mod assets;
 mod entry;
 mod panel;

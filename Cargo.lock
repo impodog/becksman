@@ -608,6 +608,7 @@ dependencies = [
  "env_logger",
  "iced",
  "log",
+ "rand 0.9.0",
  "rfd",
  "serde",
  "tokio",

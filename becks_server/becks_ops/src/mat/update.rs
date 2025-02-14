@@ -52,6 +52,28 @@ fn update_crew_option(
     Some((lhs_diff, rhs_diff))
 }
 
+fn update_beat(login: &Login, main: Id, beaten: Id, beaten_score: Score) -> Option<()> {
+    debug!(
+        "{:?} beats {:?} with score {:?}, updating",
+        main, beaten, beaten_score
+    );
+    let mut beat = Beat::query(login, main, false).unwrap_or_default();
+    beat.0.push(BeatItem {
+        oppo: String::query(login, beaten, true)?,
+        score: beaten_score,
+    });
+    let mut index = beat.0.len() - 1;
+    while index > 0 && beat.0[index - 1].score.0 < beat.0[index].score.0 {
+        beat.0.swap(index, index - 1);
+        index -= 1;
+    }
+    if beat.0.len() > becks_db::CONFIG.db.beat_limit {
+        beat.0.pop();
+    }
+    beat.modify(login, main);
+    Some(())
+}
+
 /// Updates crew score accordingly, returning left earn and right earn scores if successful
 pub fn update_crew(login: &Login, mat: &Match) -> Option<(i32, i32)> {
     let lhs_wins = mat
@@ -59,6 +81,21 @@ pub fn update_crew(login: &Login, mat: &Match) -> Option<(i32, i32)> {
         .iter()
         .fold(0, |sum, round| if round.left_win { sum + 1 } else { sum });
     let rhs_wins = mat.total_rounds as i32 - lhs_wins;
+    if lhs_wins > rhs_wins {
+        update_beat(
+            login,
+            mat.left,
+            mat.right,
+            Score::query(login, mat.right, true)?,
+        )?;
+    } else {
+        update_beat(
+            login,
+            mat.right,
+            mat.left,
+            Score::query(login, mat.left, true)?,
+        )?;
+    }
     update_crew_option(
         login,
         mat.left,

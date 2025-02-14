@@ -130,6 +130,16 @@ impl Panel for CrewPanel {
                 widget::text(assets::TEXT.get("crew_empty")).into()
             } else {
                 let mut column: Vec<Element<MainMessage>> = Vec::new();
+                // Select all button(before showing crew)
+                if self.select_only && self.allow_select_all {
+                    column.push(
+                        widget::button(assets::TEXT.get("crew_select_all"))
+                            .height(30)
+                            .on_press(MainMessage::CrewMessage(CrewMessage::SelectAll))
+                            .into(),
+                    );
+                }
+                // Show all queried crew
                 for (id, crew) in self.loaded.iter() {
                     column.push(view_crew(
                         *id,
@@ -138,14 +148,6 @@ impl Panel for CrewPanel {
                         self.select_only,
                     ));
                     column.push(widget::Rule::horizontal(1).into());
-                }
-                if self.select_only && self.allow_select_all {
-                    column.push(
-                        widget::button(assets::TEXT.get("crew_select_all"))
-                            .height(30)
-                            .on_press(MainMessage::CrewMessage(CrewMessage::SelectAll))
-                            .into(),
-                    );
                 }
                 widget::Column::from_iter(column).into()
             }

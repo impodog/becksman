@@ -22,7 +22,6 @@ pub enum MatMessage {
     Reload,
     Load,
     Loaded(Acquire<Vec<MatLoaded>>),
-    View(usize),
 }
 
 impl MatPanel {
@@ -113,13 +112,6 @@ impl Panel for MatPanel {
                     }
                     Task::none()
                 }
-                MatMessage::View(index) => {
-                    if let Some(mat) = self.loaded.get(index) {
-                        todo!()
-                    } else {
-                        Task::none()
-                    }
-                }
             },
             _ => Task::none(),
         }
@@ -133,12 +125,6 @@ impl Panel for MatPanel {
                 let mut column: Vec<Element<MainMessage>> = Vec::new();
                 for (index, mat) in self.loaded.iter().enumerate() {
                     column.push(view_mat(mat, self.focus));
-                    // column.push(
-                    //     widget::button(widget::image("assets/jump.png"))
-                    //         .height(25)
-                    //         .on_press(MainMessage::MatMessage(MatMessage::View(index)))
-                    //         .into(),
-                    // );
                     column.push(widget::Rule::horizontal(2).into());
                 }
                 widget::scrollable(widget::Column::from_iter(column)).into()
@@ -158,7 +144,15 @@ impl Panel for MatPanel {
 
 fn view_mat(mat: &MatLoaded, focus: Option<Id>) -> Element<MainMessage> {
     let mut row: Vec<Element<MainMessage>> = Vec::new();
-    row.push(widget::text(format!("{} vs. {}", mat.left, mat.right)).into());
+    row.push(
+        widget::text(format!(
+            "{} {} {}",
+            mat.left,
+            assets::TEXT.get("vs"),
+            mat.right
+        ))
+        .into(),
+    );
     match mat.mat.quit {
         Quit::Normal => {
             let left_wins =

@@ -7,12 +7,16 @@ use std::sync::RwLock;
 pub struct Database {
     pub becksman: PathBuf,
     pub user_base: PathBuf,
+    pub mat_limit: usize,
+    pub beat_limit: usize,
 }
 impl Default for Database {
     fn default() -> Self {
         Self {
             becksman: PathBuf::from("_becksman.db"),
             user_base: PathBuf::from("./"),
+            mat_limit: 10,
+            beat_limit: 10,
         }
     }
 }

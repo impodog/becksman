@@ -9,6 +9,7 @@ pub struct CrewQueryPanel {
     crew: Option<crew_panel::CrewPanel>,
     error: bool,
     select_only: bool,
+    allow_select_all: bool,
     selected: Arc<Mutex<HashSet<Id>>>,
 }
 
@@ -55,6 +56,11 @@ impl CrewQueryPanel {
         self.select_only = true;
         self
     }
+
+    pub fn allow_select_all(mut self) -> Self {
+        self.allow_select_all = true;
+        self
+    }
 }
 
 impl Panel for CrewQueryPanel {
@@ -99,7 +105,7 @@ impl Panel for CrewQueryPanel {
                             self.crew = Some(crew_panel::CrewPanel::new_with_select(
                                 list,
                                 self.selected.clone(),
-                                false,
+                                self.allow_select_all,
                             ));
                         } else {
                             self.crew = Some(crew_panel::CrewPanel::new(list));

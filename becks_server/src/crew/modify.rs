@@ -45,6 +45,7 @@ pub(super) async fn modify_crew(req: web::Json<ModifyRequest>, db: DbData) -> Ht
         Loc::Red(red) => modify_by!(RedRubber, red, login, req),
         Loc::Black(black) => modify_by!(BlackRubber, black, login, req),
         Loc::Deleted(deleted) => modify_by!(bool, deleted, login, req),
+        Loc::Beat(beat) => modify_by!(Beat, beat, login, req),
     }
 }
 
@@ -63,6 +64,7 @@ pub(super) async fn acquire_crew(req: web::Json<AcquireRequest>, db: DbData) -> 
             paddle: Paddle::query(&login, req.crew, false),
             red: RedRubber::query(&login, req.crew, false),
             black: BlackRubber::query(&login, req.crew, false),
+            beat: Beat::query(&login, req.crew, false),
         };
         Some(data)
     };

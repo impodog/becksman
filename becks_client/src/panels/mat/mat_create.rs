@@ -1,13 +1,19 @@
 use crate::prelude::*;
 use becks_match::*;
 
+#[derive(Debug, Clone)]
+struct Selection {
+    id: Id,
+    name: Option<String>,
+}
+
 #[derive(Debug)]
 pub struct MatCreatePanel {
     selection: Option<crew_query::CrewQueryPanel>,
     select_is_left: bool,
     total: usize,
-    left: Option<Id>,
-    right: Option<Id>,
+    left: Option<Selection>,
+    right: Option<Selection>,
     rounds: Vec<Option<Round>>,
     quit: Quit,
     notes: String,
@@ -23,6 +29,8 @@ pub enum MatCreateMessage {
     Created,
     UpdateTotal(usize),
     StartSelect(bool),
+    StartGetName(bool),
+    NameAcquired(bool, String),
     // These are not required since modification could be directly done
     // UpdateLeft(Id),
     // UpdateRight(Id),
@@ -49,6 +57,18 @@ impl Default for MatCreatePanel {
     }
 }
 
+impl MatCreatePanel {
+    pub fn with_left(mut self, id: Id) -> Self {
+        self.left = Some(Selection { id, name: None });
+        self
+    }
+
+    pub fn with_right(mut self, id: Id) -> Self {
+        self.right = Some(Selection { id, name: None });
+        self
+    }
+}
+
 impl Panel for MatCreatePanel {
     fn update_with_login(&mut self, login: Arc<Login>, message: MainMessage) -> Task<MainMessage> {
         self.error = false;
@@ -58,7 +78,8 @@ impl Panel for MatCreatePanel {
                 MatCreateMessage::StartCreate => {
                     if let Some((left, right, rounds)) = self
                         .left
-                        .and_then(|left| self.right.map(move |right| (left, right)))
+                        .as_ref()
+                        .and_then(|left| self.right.as_ref().map(move |right| (left.id, right.id)))
                         .and_then(|(left, right)| {
                             let rounds = self.rounds.iter().copied().collect::<Option<Vec<_>>>();
                             rounds.map(move |round| (left, right, round))
@@ -85,6 +106,51 @@ impl Panel for MatCreatePanel {
                 MatCreateMessage::StartSelect(left) => {
                     self.select_is_left = left;
                     self.selection = Some(crew_query::CrewQueryPanel::default().select_only());
+                    Task::none()
+                }
+                MatCreateMessage::StartGetName(left) => {
+                    let id = if left {
+                        self.left.as_ref().map(|left| left.id)
+                    } else {
+                        self.right.as_ref().map(|right| right.id)
+                    };
+                    if let Some(id) = id {
+                        Task::perform(
+                            async move {
+                                crew::CrewInfo::new(id)
+                                    .load(login.as_ref())
+                                    .await
+                                    .map(|data| std::mem::take(&mut data.name))
+                            },
+                            move |result| match result {
+                                Ok(name) => MainMessage::MatCreateMessage(
+                                    MatCreateMessage::NameAcquired(left, name),
+                                ),
+                                Err(err) => {
+                                    error!("When acquiring match crew name, {}", err);
+                                    MainMessage::None
+                                }
+                            },
+                        )
+                    } else {
+                        Task::none()
+                    }
+                }
+                MatCreateMessage::NameAcquired(left, name) => {
+                    #[allow(clippy::collapsible_else_if)]
+                    if left {
+                        if let Some(left) = self.left.as_mut() {
+                            left.name = Some(name);
+                        } else {
+                            warn!("When acquired name {}, left does not exist", name);
+                        }
+                    } else {
+                        if let Some(right) = self.right.as_mut() {
+                            right.name = Some(name);
+                        } else {
+                            warn!("When acquired name {}, right does not exist", name);
+                        }
+                    }
                     Task::none()
                 }
                 MatCreateMessage::LocalError => {
@@ -120,15 +186,23 @@ impl Panel for MatCreatePanel {
                 if let Some(selection) = self.selection.as_mut() {
                     let task = selection.update_with_login(login, message);
                     let selection = selection.selection();
-                    if let Some(id) = selection.iter().next().copied() {
+                    let task = if let Some(id) = selection.iter().next().copied() {
                         std::mem::drop(selection);
                         self.selection = None;
                         if self.select_is_left {
-                            self.left = Some(id);
+                            self.left = Some(Selection { id, name: None });
+                            task.chain(Task::done(MainMessage::MatCreateMessage(
+                                MatCreateMessage::StartGetName(true),
+                            )))
                         } else {
-                            self.right = Some(id);
+                            self.right = Some(Selection { id, name: None });
+                            task.chain(Task::done(MainMessage::MatCreateMessage(
+                                MatCreateMessage::StartGetName(false),
+                            )))
                         }
-                    }
+                    } else {
+                        task
+                    };
                     task
                 } else {
                     Task::none()
@@ -148,14 +222,41 @@ impl Panel for MatCreatePanel {
             column.push(widget::horizontal_rule(2).into());
             column.push(
                 widget::row![
-                    widget::button(assets::TEXT.get("mat_create_left")).on_press(
-                        MainMessage::MatCreateMessage(MatCreateMessage::StartSelect(true))
-                    ),
-                    widget::button(assets::TEXT.get("mat_create_right")).on_press(
-                        MainMessage::MatCreateMessage(MatCreateMessage::StartSelect(false))
-                    ),
+                    widget::button(assets::TEXT.get("mat_create_left"))
+                        .on_press(MainMessage::MatCreateMessage(
+                            MatCreateMessage::StartSelect(true)
+                        ))
+                        .style(if self.left.is_some() {
+                            widget::button::secondary
+                        } else {
+                            widget::button::primary
+                        }),
+                    widget::button(assets::TEXT.get("mat_create_right"))
+                        .on_press(MainMessage::MatCreateMessage(
+                            MatCreateMessage::StartSelect(false)
+                        ))
+                        .style(if self.right.is_some() {
+                            widget::button::secondary
+                        } else {
+                            widget::button::primary
+                        }),
                 ]
                 .spacing(10)
+                .into(),
+            );
+            column.push(
+                widget::text(format!(
+                    "{} {} {}",
+                    self.left
+                        .as_ref()
+                        .and_then(|selection| selection.name.as_deref())
+                        .unwrap_or_else(|| assets::TEXT.get("mat_create_left_pending")),
+                    assets::TEXT.get("vs"),
+                    self.right
+                        .as_ref()
+                        .and_then(|selection| selection.name.as_deref())
+                        .unwrap_or_else(|| assets::TEXT.get("mat_create_right_pending")),
+                ))
                 .into(),
             );
             if let Some(selection) = self.selection.as_ref() {

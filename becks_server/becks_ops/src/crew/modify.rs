@@ -243,3 +243,45 @@ impl Column for bool {
         value
     }
 }
+
+impl Column for Beat {
+    type Target = String;
+    fn name() -> &'static str {
+        "beat"
+    }
+    fn convert(self) -> Self::Target {
+        let mut target = String::new();
+        for beat in self.0.into_iter() {
+            target.push_str(&beat.oppo);
+            target.push('?');
+            target.push_str(&beat.score.0.to_string());
+            target.push('/');
+        }
+        target
+    }
+    fn acquire(value: Self::Target) -> Self {
+        let mut target = Self::default();
+        for item in value.split('/') {
+            let item = item.trim();
+            if !item.is_empty() {
+                if let Some(pos) = item.find('?') {
+                    let (left, right) = item.split_at(pos);
+                    // Removes the question mark
+                    let right = &right[1..];
+                    match right.trim().parse() {
+                        Ok(value) => {
+                            target.0.push(BeatItem {
+                                oppo: left.to_owned(),
+                                score: Score(value),
+                            });
+                        }
+                        Err(err) => {
+                            error!("When loading beat list with score {}, {}", right, err);
+                        }
+                    }
+                }
+            }
+        }
+        target
+    }
+}
