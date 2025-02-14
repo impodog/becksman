@@ -302,6 +302,13 @@ impl Panel for CrewInfoPanel {
                 Black,
                 black
             ));
+            if let Some(beat) = data.beat.as_ref() {
+                column.push(
+                    widget::container(view_beat(beat))
+                        .style(widget::container::rounded_box)
+                        .into(),
+                );
+            }
 
             if let Some(mat) = self.mat.as_ref() {
                 column.push(
@@ -366,4 +373,20 @@ fn view_data_key(key: &str) -> Element<'static, MainMessage> {
 
 fn view_data<'a>(key: &str, data: impl Into<Element<'a, MainMessage>>) -> Element<'a, MainMessage> {
     widget::row![view_data_key(key), widget::horizontal_space(), data.into()].into()
+}
+
+fn view_beat(beat: &Beat) -> Element<MainMessage> {
+    let mut column: Vec<Element<MainMessage>> = Vec::new();
+    column.push(widget::text(assets::TEXT.get("crew_info_beat_title")).into());
+    for beat in beat.0.iter() {
+        column.push(
+            widget::row![
+                widget::text(&beat.oppo),
+                widget::text(beat.score.0.to_string())
+            ]
+            .spacing(10)
+            .into(),
+        );
+    }
+    widget::Column::from_iter(column).spacing(5).into()
 }

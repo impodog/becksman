@@ -304,6 +304,24 @@ impl Panel for MatCreatePanel {
         ]
         .into()
     }
+
+    fn on_start_up(&mut self) -> Task<MainMessage> {
+        let left_task = if self.left.is_some() {
+            Task::done(MainMessage::MatCreateMessage(
+                MatCreateMessage::StartGetName(true),
+            ))
+        } else {
+            Task::none()
+        };
+        let right_task = if self.right.is_some() {
+            Task::done(MainMessage::MatCreateMessage(
+                MatCreateMessage::StartGetName(false),
+            ))
+        } else {
+            Task::none()
+        };
+        left_task.chain(right_task)
+    }
 }
 
 fn view_total(total: usize) -> Element<'static, MainMessage> {

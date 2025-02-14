@@ -42,7 +42,7 @@ where
         return;
     }
     let window = list.len().isqrt().min(3);
-    list.sort_unstable();
+    //list.sort_unstable();
     for begin in 0..list.len() {
         let end = (begin + window + 1).min(list.len());
         let swap = rand::rng().random_range(begin..end);
@@ -52,9 +52,11 @@ where
 
 impl Arranger {
     pub fn new(ids: impl IntoIterator<Item = ArrangeItem>, group_size: usize) -> Self {
+        let ids = ids.into_iter().collect::<Vec<_>>();
+        let group_size = group_size.clamp(1, ids.len().max(1));
         Self {
-            ids: ids.into_iter().collect(),
-            group_size: group_size.max(1),
+            ids,
+            group_size,
             groups: Default::default(),
         }
     }
@@ -63,23 +65,27 @@ impl Arranger {
         mild_sort(&mut self.ids);
 
         let total = self.ids.len();
-        let groups_count = total.div_euclid(self.group_size);
+        let groups_count = total.div_euclid(self.group_size).max(1);
         let mut remain_len = total - groups_count * self.group_size;
 
         self.groups.resize_with(groups_count, Default::default);
         let mut count = 0usize;
         let mut group_index = 0usize;
         for (index, ArrangeItem { id, score: _ }) in self.ids.iter().copied().enumerate() {
-            self.groups[group_index].all.push(id);
-            let rest = total - index;
-            if rand::rng().random_ratio(remain_len as u32, rest as u32) {
-                // If this crew is chosen to be one of the additions
-                remain_len -= 1;
+            if group_index >= self.groups.len() {
+                self.groups.last_mut().unwrap().all.push(id);
             } else {
-                count += 1;
-                if count == self.group_size {
-                    count = 0;
-                    group_index += 1;
+                self.groups[group_index].all.push(id);
+                let rest = total - index;
+                if rand::rng().random_ratio(remain_len as u32, rest as u32) {
+                    // If this crew is chosen to be one of the additions
+                    remain_len -= 1;
+                } else {
+                    count += 1;
+                    if count == self.group_size {
+                        count = 0;
+                        group_index += 1;
+                    }
                 }
             }
         }

@@ -252,6 +252,8 @@ impl Column for Beat {
     fn convert(self) -> Self::Target {
         let mut target = String::new();
         for beat in self.0.into_iter() {
+            target.push_str(&beat.id.to_prim().to_string());
+            target.push('?');
             target.push_str(&beat.oppo);
             target.push('?');
             target.push_str(&beat.score.0.to_string());
@@ -265,18 +267,35 @@ impl Column for Beat {
             let item = item.trim();
             if !item.is_empty() {
                 if let Some(pos) = item.find('?') {
-                    let (left, right) = item.split_at(pos);
+                    let (left, mid_right) = item.split_at(pos);
                     // Removes the question mark
-                    let right = &right[1..];
-                    match right.trim().parse() {
-                        Ok(value) => {
-                            target.0.push(BeatItem {
-                                oppo: left.to_owned(),
-                                score: Score(value),
-                            });
-                        }
-                        Err(err) => {
-                            error!("When loading beat list with score {}, {}", right, err);
+                    let mid_right = &mid_right[1..];
+                    if let Some(pos) = mid_right.find('?') {
+                        let (mid, right) = mid_right.split_at(pos);
+                        let right = &right[1..];
+
+                        match left.trim().parse() {
+                            Ok(value) => {
+                                let id = Id::from_prim(value);
+                                match right.trim().parse() {
+                                    Ok(value) => {
+                                        target.0.push(BeatItem {
+                                            id,
+                                            oppo: mid.to_owned(),
+                                            score: Score(value),
+                                        });
+                                    }
+                                    Err(err) => {
+                                        error!(
+                                            "When loading beat list with score {}, {}",
+                                            right, err
+                                        );
+                                    }
+                                }
+                            }
+                            Err(err) => {
+                                error!("When loading beat list with id {}, {}", left, err);
+                            }
                         }
                     }
                 }

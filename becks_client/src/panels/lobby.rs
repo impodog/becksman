@@ -81,6 +81,11 @@ impl Panel for LobbyPanel {
                     .style(widget::button::text)
                     .on_press(MainMessage::Open(Acquire::new(PanelHandle::new(
                         mat_create::MatCreatePanel::default()
+                    )))),
+                widget::button(assets::TEXT.get("lobby_arrange"))
+                    .style(widget::button::text)
+                    .on_press(MainMessage::Open(Acquire::new(PanelHandle::new(
+                        mat_arrange::MatArrangePanel::default()
                     ))))
             ]
             .spacing(30),

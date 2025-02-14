@@ -47,6 +47,7 @@ impl Default for Score {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BeatItem {
+    pub id: Id,
     pub oppo: String,
     pub score: Score,
 }

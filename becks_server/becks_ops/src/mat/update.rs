@@ -58,7 +58,20 @@ fn update_beat(login: &Login, main: Id, beaten: Id, beaten_score: Score) -> Opti
         main, beaten, beaten_score
     );
     let mut beat = Beat::query(login, main, false).unwrap_or_default();
+    // If the id was previously contained
+    if beat.0.iter_mut().any(|beat| {
+        if beat.id == beaten {
+            beat.score.0 = beat.score.0.max(beaten_score.0);
+            true
+        } else {
+            false
+        }
+    }) {
+        return Some(());
+    }
+    // On continue the update
     beat.0.push(BeatItem {
+        id: beaten,
         oppo: String::query(login, beaten, true)?,
         score: beaten_score,
     });
