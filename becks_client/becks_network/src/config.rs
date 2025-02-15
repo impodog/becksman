@@ -41,6 +41,7 @@ pub struct Assets {
     pub text: String,
     pub fonts: Vec<String>,
     pub primary_font: String,
+    pub theme: usize,
 }
 impl Default for Assets {
     fn default() -> Self {
@@ -53,6 +54,7 @@ impl Default for Assets {
                 "assets/NotoSans.ttc".to_owned(),
             ],
             primary_font: "Noto Sans CJK SC".to_owned(),
+            theme: 0,
         }
     }
 }

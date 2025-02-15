@@ -139,6 +139,17 @@ pub fn run_app() {
         })
         .collect::<Vec<_>>();
     let fonts = Box::leak(Box::new(fonts));
+    let themes = [
+        iced::Theme::TokyoNight,
+        iced::Theme::Dracula,
+        iced::Theme::SolarizedDark,
+        iced::Theme::GruvboxDark,
+        iced::Theme::Oxocarbon,
+    ];
+    let theme = themes
+        .get(config::CONFIG.assets.theme)
+        .cloned()
+        .unwrap_or_default();
 
     iced::application(assets::TEXT.get("title"), Main::update, Main::view)
         .subscription(Main::subscription_update_login)
@@ -147,7 +158,7 @@ pub fn run_app() {
             icon: Some(icon),
             ..Default::default()
         })
-        .theme(|_main| iced::Theme::Dracula)
+        .theme(move |_main| theme.clone())
         .scale_factor(|_main| 2.0)
         .settings(iced::Settings {
             fonts: fonts
