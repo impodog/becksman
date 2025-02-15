@@ -148,7 +148,7 @@ pub fn run_app() {
             ..Default::default()
         })
         .theme(|_main| iced::Theme::Dracula)
-        .scale_factor(|_main| 2.0)
+        .scale_factor(|_main| 1.8)
         .settings(iced::Settings {
             fonts: fonts
                 .iter()

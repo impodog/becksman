@@ -1,0 +1,6 @@
+To generate sqlite3.lib from downloaded sources(dll and def):
+(With VS developer shell)
+lib /def:path\to\sqlite3.def /machine:x64
+
+To set sqlite3.lib path (DIR, not file):
+$env:SQLITE3_LIB_DIR = "C:\Program Files\sqlite"
