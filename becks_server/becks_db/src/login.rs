@@ -55,7 +55,8 @@ impl Login {
                     red_rubber TEXT,
                     black_rubber TEXT,
                     beat TEXT,
-                    deleted BIT
+                    deleted BIT,
+                    score_applied BIT
                 )"
                 },
                 [],

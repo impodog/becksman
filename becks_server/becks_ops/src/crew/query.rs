@@ -125,6 +125,9 @@ impl Query for QueryBy {
                 Loc::Black(black) => extend_query_sql!(BlackRubber, sql, params, pos, black),
                 Loc::Deleted(deleted) => extend_query_sql!(bool, sql, params, pos, deleted),
                 Loc::Beat(beat) => extend_query_sql!(Beat, sql, params, pos, beat),
+                Loc::ScoreApplied(score_applied) => {
+                    extend_query_sql!(ScoreApplied, sql, params, pos, score_applied)
+                }
             }
         }
         #[allow(unused_assignments)]

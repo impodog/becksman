@@ -159,7 +159,7 @@ pub fn run_app() {
             ..Default::default()
         })
         .theme(move |_main| theme.clone())
-        .scale_factor(|_main| 2.0)
+        .scale_factor(|_main| 1.6)
         .settings(iced::Settings {
             fonts: fonts
                 .iter()

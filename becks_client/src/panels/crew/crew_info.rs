@@ -11,6 +11,7 @@ pub struct CrewInfoPanel {
     crew_data: Option<CrewData>,
     mat: Option<mat_panel::MatPanel>,
     error: bool,
+    score_apply_confirm: bool,
     delete_confirm: bool,
 }
 
@@ -20,6 +21,7 @@ pub enum CrewInfoMessage {
     Loaded(Acquire<(Id, CrewData, Option<mat::MatchList>)>),
     LoadError,
     Update(CrewLocation),
+    ScoreApplyConfirm,
     DeleteConfirm,
     Delete,
 }
@@ -32,6 +34,7 @@ impl CrewInfoPanel {
             crew_data: None,
             mat: None,
             error: false,
+            score_apply_confirm: false,
             delete_confirm: false,
         }
     }
@@ -164,6 +167,10 @@ impl Panel for CrewInfoPanel {
                     self.error = true;
                     Task::none()
                 }
+                CrewInfoMessage::ScoreApplyConfirm => {
+                    self.score_apply_confirm = true;
+                    Task::none()
+                }
                 CrewInfoMessage::DeleteConfirm => {
                     self.delete_confirm = true;
                     Task::none()
@@ -227,10 +234,53 @@ impl Panel for CrewInfoPanel {
                     },
                 ),
             ));
-            column.push(view_data(
-                "crew_info_score",
-                widget::text(data.score.0.to_string()).style(widget::text::success),
-            ));
+            if data.score_applied.0 {
+                column.push(view_data(
+                    "crew_info_score",
+                    widget::text(data.score.0.to_string()).style(widget::text::success),
+                ));
+            } else {
+                column.push(view_data(
+                    "crew_info_score",
+                    widget::row![
+                        if self.score_apply_confirm {
+                            widget::button(assets::TEXT.get("crew_info_score_apply_confirm"))
+                                .on_press(MainMessage::CrewInfoMessage(CrewInfoMessage::Update(
+                                    CrewLocation::ScoreApplied(ScoreApplied(true)),
+                                )))
+                        } else {
+                            widget::button(assets::TEXT.get("crew_info_score_apply")).on_press(
+                                MainMessage::CrewInfoMessage(CrewInfoMessage::ScoreApplyConfirm),
+                            )
+                        }
+                        .style(widget::button::danger),
+                        widget::text_input(
+                            assets::TEXT.get("crew_info_score_hint"),
+                            &if data.score.0 == i32::MIN {
+                                "".to_owned()
+                            } else {
+                                data.score.0.to_string()
+                            },
+                        )
+                        .width(200)
+                        .on_input(|value| {
+                            if value.is_empty() {
+                                MainMessage::CrewInfoMessage(CrewInfoMessage::Update(
+                                    CrewLocation::Score(Score(i32::MIN)),
+                                ))
+                            } else {
+                                match value.parse() {
+                                    Ok(value) => MainMessage::CrewInfoMessage(
+                                        CrewInfoMessage::Update(CrewLocation::Score(Score(value))),
+                                    ),
+                                    Err(_) => MainMessage::None,
+                                }
+                            }
+                        }),
+                    ]
+                    .spacing(5),
+                ));
+            }
             column.push(view_data(
                 "crew_info_hold",
                 widget::pick_list(

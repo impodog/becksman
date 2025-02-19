@@ -304,3 +304,16 @@ impl Column for Beat {
         target
     }
 }
+
+impl Column for ScoreApplied {
+    type Target = bool;
+    fn name() -> &'static str {
+        "score_applied"
+    }
+    fn convert(self) -> Self::Target {
+        self.0
+    }
+    fn acquire(value: Self::Target) -> Self {
+        Self(value)
+    }
+}

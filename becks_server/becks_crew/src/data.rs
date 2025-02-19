@@ -39,6 +39,9 @@ pub struct BlackRubber(pub Rubber);
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct Score(pub i32);
 
+#[derive(Default, Debug, Clone, Copy, Serialize, Deserialize)]
+pub struct ScoreApplied(pub bool);
+
 impl Default for Score {
     fn default() -> Self {
         Self(500)
@@ -68,6 +71,7 @@ pub struct CrewData {
     pub red: Option<RedRubber>,
     pub black: Option<BlackRubber>,
     pub beat: Option<Beat>,
+    pub score_applied: ScoreApplied,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -84,4 +88,5 @@ pub enum CrewLocation {
     Black(BlackRubber),
     Beat(Beat),
     Deleted(bool),
+    ScoreApplied(ScoreApplied),
 }

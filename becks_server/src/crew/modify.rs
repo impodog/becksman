@@ -36,7 +36,16 @@ pub(super) async fn modify_crew(req: web::Json<ModifyRequest>, db: DbData) -> Ht
     match req.loc.to_owned() {
         Loc::Name(name) => modify_by!(String, name, login, req),
         Loc::Social(social) => modify_by!(Social, social, login, req),
-        Loc::Score(score) => modify_by!(Score, score, login, req),
+        Loc::Score(score) => {
+            let score_applied = ScoreApplied::query(&login, req.crew, false).unwrap_or_default();
+            if score_applied.0 {
+                HttpResponse::BadRequest()
+                    .content_type(http::header::ContentType::plaintext())
+                    .body("unable to modify a crew's score when score applied is set to true")
+            } else {
+                modify_by!(Score, score, login, req)
+            }
+        }
         Loc::Gender(gender) => modify_by!(Gender, gender, login, req),
         Loc::Clothes(clothes) => modify_by!(Clothes, clothes, login, req),
         Loc::Hand(hand) => modify_by!(Hand, hand, login, req),
@@ -46,6 +55,15 @@ pub(super) async fn modify_crew(req: web::Json<ModifyRequest>, db: DbData) -> Ht
         Loc::Black(black) => modify_by!(BlackRubber, black, login, req),
         Loc::Deleted(deleted) => modify_by!(bool, deleted, login, req),
         Loc::Beat(beat) => modify_by!(Beat, beat, login, req),
+        Loc::ScoreApplied(score_applied) => {
+            if !score_applied.0 {
+                HttpResponse::BadRequest()
+                    .content_type(http::header::ContentType::plaintext())
+                    .body("unable to modify a crew's score_applied to false")
+            } else {
+                modify_by!(ScoreApplied, score_applied, login, req)
+            }
+        }
     }
 }
 
@@ -65,6 +83,7 @@ pub(super) async fn acquire_crew(req: web::Json<AcquireRequest>, db: DbData) -> 
             red: RedRubber::query(&login, req.crew, false),
             black: BlackRubber::query(&login, req.crew, false),
             beat: Beat::query(&login, req.crew, false),
+            score_applied: ScoreApplied::query(&login, req.crew, true)?,
         };
         Some(data)
     };
