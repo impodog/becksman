@@ -2,3 +2,7 @@
 /becksman-*.toml
 /*.db
 **/__pycache__
+/binary/**/*
+**/.vs/**/*
+**/x64/**/*
+/*Installer.exe

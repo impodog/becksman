@@ -17,3 +17,6 @@ serde = { version = "1.0.217", features = ["derive"] }
 json = "0.12.4"
 serde_json = "1.0.138"
 tokio = "1.43.0"
+
+[build]
+rustflags = ["-C", "link-args=/SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup"]
